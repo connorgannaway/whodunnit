@@ -12,13 +12,13 @@ type control struct {
 }
 
 type footerModel struct {
-	width	 int
-	controls  []control
+	width      int
+	controls   []control
 	controlsLR []control
-	separator string
-	status    string
-	showLR	bool
-	spinner   spinner.Model
+	separator  string
+	status     string
+	showLR     bool
+	spinner    spinner.Model
 }
 
 var footerBold = lipgloss.NewStyle().
@@ -93,7 +93,7 @@ func (f footerModel) View() string {
 
 	for i, c := range controlsArray {
 		s += footerBold.Render(c.key) + " " + footerText.Render(c.desc)
-		if f.showLR && i == (len(controlsArray)/2 - 1) {
+		if f.showLR && i == (len(controlsArray)/2-1) {
 			s += "\n"
 			continue
 		}

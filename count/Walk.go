@@ -11,7 +11,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-
 type IgnoreFunc func(path string, isDir bool) bool
 
 func loadGitignore(dir string) (IgnoreFunc, error) {
@@ -38,7 +37,6 @@ func loadGitignore(dir string) (IgnoreFunc, error) {
 		return nil, err
 	}
 
-
 	return func(path string, isDir bool) bool {
 		rel, err := filepath.Rel(dir, path)
 		if err != nil {
@@ -59,7 +57,6 @@ func loadGitignore(dir string) (IgnoreFunc, error) {
 		return false
 	}, nil
 }
-
 
 func walkDir(root string, parentIgnore IgnoreFunc) error {
 	currentIgnore, err := loadGitignore(root)

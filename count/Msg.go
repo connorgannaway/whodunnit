@@ -11,7 +11,7 @@ type WalkErrorMsg struct {
 }
 
 type BlameDoneMsg struct {
-	Counts map[string]*BlameCount
+	Counts     map[string]*BlameCount
 	SortedKeys []string
 }
 

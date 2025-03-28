@@ -86,7 +86,7 @@ func StartBlameRepo(rootFs string) tea.Cmd {
 		})
 
 		return BlameDoneMsg{
-			Counts: BlameCounts,
+			Counts:     BlameCounts,
 			SortedKeys: BlameCountKeys,
 		}
 	}

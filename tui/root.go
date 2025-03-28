@@ -11,11 +11,11 @@ import (
 )
 
 type rootModel struct {
-	header           headerModel
-	lineContent          lineContentModel
-	blameContent  blameContentModel
-	footer           footerModel
-	errors           []error
+	header       headerModel
+	lineContent  lineContentModel
+	blameContent blameContentModel
+	footer       footerModel
+	errors       []error
 
 	windowWidth   int
 	leftWidth     int
@@ -37,12 +37,12 @@ const SINGLE_PANEL_WIDTH = 50
 
 func NewRootModel(rootfs string) rootModel {
 	return rootModel{
-		header:           newHeaderModel(rootfs),
-		lineContent:          newLineContentModel(),
+		header:       newHeaderModel(rootfs),
+		lineContent:  newLineContentModel(),
 		blameContent: newBlameContentModel(),
-		footer:           newFooterModel(),
-		errors:           []error{},
-		activePanel: 	0,
+		footer:       newFooterModel(),
+		errors:       []error{},
+		activePanel:  0,
 	}
 }
 
@@ -102,9 +102,9 @@ func (r rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		r.windowWidth = availableWidth
 		r.headerHeight = headerHeight
-		r.contentHeight = contentAreaHeight  
-		r.leftWidth = leftWidth              
-		r.rightWidth = rightWidth            
+		r.contentHeight = contentAreaHeight
+		r.leftWidth = leftWidth
+		r.rightWidth = rightWidth
 	}
 
 	if r.windowWidth <= SINGLE_PANEL_WIDTH {
@@ -128,7 +128,7 @@ func (r rootModel) View() string {
 	footerView := footerMargin.Render(r.footer.View())
 	lineContentView := lineContentMargin.Render(r.lineContent.View())
 	blameContentView := blameContentMargin.Render(r.blameContent.View())
-	
+
 	var contentRow string
 	if r.windowWidth <= SINGLE_PANEL_WIDTH {
 		if r.activePanel == 0 {

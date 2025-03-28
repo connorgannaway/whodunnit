@@ -26,9 +26,8 @@ type headerModel struct {
 	isGitRepo     bool
 	currentBranch string
 	hash          string
-	width 		int
+	width         int
 	activePanel   int
-	
 }
 
 func newHeaderModel(path string) headerModel {
@@ -67,7 +66,7 @@ func newHeaderModel(path string) headerModel {
 		isGitRepo:     isGitRepo,
 		currentBranch: currentBranch,
 		hash:          hash,
-		activePanel:  0,
+		activePanel:   0,
 	}
 }
 
@@ -131,7 +130,7 @@ func (h headerModel) View() string {
 		fillerWidth = h.width - dirBoxWidth - preGitInfoWidth - gitStringWidth
 		content = gitString
 	}
-	
+
 	if fillerWidth < 0 {
 		fillerWidth = 0
 	}

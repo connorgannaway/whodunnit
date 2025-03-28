@@ -13,20 +13,19 @@ import (
 )
 
 type blameContentModel struct {
-	counts map[string]*count.BlameCount
+	counts               map[string]*count.BlameCount
 	sortedCountsKeyArray []string
-	isGitRepo bool
+	isGitRepo            bool
 
-    viewport viewport.Model
-    ready    bool
+	viewport viewport.Model
+	ready    bool
 }
 
 func newBlameContentModel() blameContentModel {
-    return blameContentModel{
+	return blameContentModel{
 		isGitRepo: true,
 	}
 }
-
 
 func (c blameContentModel) generateContent() string {
 	var content string
@@ -105,9 +104,9 @@ func (c blameContentModel) generateContent() string {
 }
 
 func (c *blameContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
-    var cmds []tea.Cmd
+	var cmds []tea.Cmd
 
-    switch m := msg.(type) {
+	switch m := msg.(type) {
 	case count.BlameDoneMsg:
 		c.counts = m.Counts
 		c.sortedCountsKeyArray = m.SortedKeys
@@ -115,31 +114,31 @@ func (c *blameContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 			c.viewport.SetContent(c.generateContent())
 		}
 	case count.BlameErrorMsg:
-		if errors.Is(m.Error, git.ErrRepositoryNotExists){
+		if errors.Is(m.Error, git.ErrRepositoryNotExists) {
 			c.isGitRepo = false
 			c.viewport.SetContent(c.generateContent())
 		}
-    case tea.WindowSizeMsg:
-        if !c.ready {
-            c.viewport = viewport.New(width, height)
-            c.viewport.SetContent(c.generateContent())
-            c.ready = true
-        } else {
-            c.viewport.Width = width
-            c.viewport.Height = height
+	case tea.WindowSizeMsg:
+		if !c.ready {
+			c.viewport = viewport.New(width, height)
 			c.viewport.SetContent(c.generateContent())
-        }
+			c.ready = true
+		} else {
+			c.viewport.Width = width
+			c.viewport.Height = height
+			c.viewport.SetContent(c.generateContent())
+		}
 	}
 
-    var vpCmd tea.Cmd
-    c.viewport, vpCmd = c.viewport.Update(msg)
-    cmds = append(cmds, vpCmd)
-    return tea.Batch(cmds...)
+	var vpCmd tea.Cmd
+	c.viewport, vpCmd = c.viewport.Update(msg)
+	cmds = append(cmds, vpCmd)
+	return tea.Batch(cmds...)
 }
 
 func (c blameContentModel) View() string {
-    if c.ready {
-        return c.viewport.View()
-    }
-    return ""
+	if c.ready {
+		return c.viewport.View()
+	}
+	return ""
 }
