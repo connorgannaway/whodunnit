@@ -107,18 +107,12 @@ brews:
     # Templates: allowed.
     skip_upload: auto
 
-    # So you can `brew test` your formula.
-    #
-    # Template: allowed
-    test: |
-      system "#{bin}/whodunnit --version"
-
     # Custom install script for brew.
     #
     # Template: allowed
     # Default: 'bin.install "BinaryName"'.
     install: |
-      bin.install whodunnit
+      bin.install "whodunnit"
 
     # Repository to push the generated files to.
     repository:
