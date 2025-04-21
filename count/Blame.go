@@ -1,8 +1,10 @@
 package count
 
 import (
+	"runtime"
 	"sort"
 	"strings"
+	"sync"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/go-git/go-git/v5"
@@ -14,80 +16,126 @@ type BlameCount struct {
 	LinesByType map[string]*FileCount
 }
 
-var BlameCounts map[string]*BlameCount = make(map[string]*BlameCount)
+type BlameJob struct {
+	file  ValidFile
+	index int
+}
 
-var BlameStatusChannel = make(chan tea.Msg)
+var (
+	BlameCounts          = make(map[string]*BlameCount)
+	blameCountsLocker    sync.Mutex
+	BlameStatusChannel   = make(chan tea.Msg)
+)
+
 
 func BlameRepo(rootFs string) error {
-	repo, err := git.PlainOpen(rootFs)
-	if err != nil {
-		return err
-	}
+	numWorkers := runtime.NumCPU()
+	jobs := make(chan BlameJob)
+	var wg sync.WaitGroup
+	wg.Add(numWorkers)
 
-	headRef, err := repo.Head()
-	if err != nil {
-		return err
-	}
+	totalFileCount := len(Files)
 
-	commit, err := repo.CommitObject(headRef.Hash())
-	if err != nil {
-		return err
-	}
+	for w := 0; w < numWorkers; w++ {
+		go func() {
+			defer wg.Done()
 
-	for _, file := range Files {
-		localizedPath, _ := strings.CutPrefix(file.Path, rootFs+"/")
-
-		go func(path string) {
-			BlameStatusChannel <- BlameStatusMsg{Filepath: path}
-		}(localizedPath)
-
-		blame, err := git.Blame(commit, localizedPath)
-		if err != nil {
-			continue
-		}
-
-		for _, line := range blame.Lines {
-			if _, ok := BlameCounts[line.AuthorName]; !ok {
-				BlameCounts[line.AuthorName] = &BlameCount{
-					Author:      line.AuthorName,
-					Count:       0,
-					LinesByType: make(map[string]*FileCount),
-				}
+			// Each worker opens its own repo/commit object
+			repo, err := git.PlainOpen(rootFs)
+			if err != nil {
+				return 
 			}
-			if _, ok := BlameCounts[line.AuthorName].LinesByType[file.Filetype]; !ok {
-				BlameCounts[line.AuthorName].LinesByType[file.Filetype] = &FileCount{
-					Filetype: file.Filetype,
-					Count:    0,
-				}
+			headRef, err := repo.Head()
+			if err != nil {
+				return
 			}
-			BlameCounts[line.AuthorName].Count++
-			BlameCounts[line.AuthorName].LinesByType[file.Filetype].Count++
-		}
+			commit, err := repo.CommitObject(headRef.Hash())
+			if err != nil {
+				return
+			}
+
+			for job := range jobs {
+				file := job.file
+				current := job.index
+				localizedPath, _ := strings.CutPrefix(file.Path, rootFs+"/")
+
+				// non‑blocking status update
+				select {
+				case BlameStatusChannel <- BlameStatusMsg{
+					Filepath:    localizedPath,
+					CurrentFile: current,
+					TotalFiles:  totalFileCount,
+				}:
+				default:
+				}
+
+				blame, err := git.Blame(commit, localizedPath)
+				if err != nil {
+					continue 
+				}
+
+				// Update the shared counts
+				blameCountsLocker.Lock()
+				for _, line := range blame.Lines {
+					bc, ok := BlameCounts[line.AuthorName]
+					if !ok {
+						bc = &BlameCount{
+							Author:      line.AuthorName,
+							LinesByType: make(map[string]*FileCount),
+						}
+						BlameCounts[line.AuthorName] = bc
+					}
+					if _, ok := bc.LinesByType[file.Filetype]; !ok {
+						bc.LinesByType[file.Filetype] = &FileCount{
+							Filetype: file.Filetype,
+						}
+					}
+					bc.Count++
+					bc.LinesByType[file.Filetype].Count++
+				}
+				blameCountsLocker.Unlock()
+			}
+		}()
 	}
 
+	// feed jobs
+	for i, f := range Files {
+		jobs <- BlameJob{file: f, index: i + 1}
+	}
+	close(jobs)
+	wg.Wait()
 	return nil
 }
 
 func StartBlameRepo(rootFs string) tea.Cmd {
 	return func() tea.Msg {
-		err := BlameRepo(rootFs)
+		//Catch errors before creating workers
+		repo, err := git.PlainOpen(rootFs)
 		if err != nil {
-			return BlameErrorMsg{
-				Error: err,
-			}
+			return BlameErrorMsg{Error: err}
+		}
+		headRef, err := repo.Head()
+		if err != nil {
+			return BlameErrorMsg{Error: err}
+		}
+		_, err = repo.CommitObject(headRef.Hash())
+		if err != nil {
+			return BlameErrorMsg{Error: err}
 		}
 
-		var BlameCountKeys []string
-		for k := range BlameCounts {
-			BlameCountKeys = append(BlameCountKeys, k)
+		// Blame the repo
+		if err := BlameRepo(rootFs); err != nil {
+			return BlameErrorMsg{Error: err}
 		}
-		sort.Slice(BlameCountKeys, func(i, j int) bool {
-			return BlameCounts[BlameCountKeys[i]].Count > BlameCounts[BlameCountKeys[j]].Count
+
+		keys := make([]string, 0, len(BlameCounts))
+		for k := range BlameCounts {
+			keys = append(keys, k)
+		}
+		sort.Slice(keys, func(i, j int) bool {
+			return BlameCounts[keys[i]].Count > BlameCounts[keys[j]].Count
 		})
 
-		return BlameDoneMsg{
-			Counts:     BlameCounts,
-			SortedKeys: BlameCountKeys,
-		}
+		return BlameDoneMsg{Counts: BlameCounts, SortedKeys: keys}
 	}
 }

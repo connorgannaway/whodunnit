@@ -20,5 +20,7 @@ type BlameErrorMsg struct {
 }
 
 type BlameStatusMsg struct {
+	CurrentFile int
+	TotalFiles  int
 	Filepath string
 }

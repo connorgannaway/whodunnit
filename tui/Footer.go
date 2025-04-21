@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -60,7 +62,7 @@ func (f *footerModel) Update(msg tea.Msg, width int) tea.Cmd {
 	var cmds []tea.Cmd
 	switch m := msg.(type) {
 	case count.BlameStatusMsg:
-		f.status = "Blaming: " + m.Filepath
+		f.status = fmt.Sprintf("Blaming (%d / %d): %s", m.CurrentFile, m.TotalFiles, m.Filepath)
 	case count.BlameDoneMsg:
 		f.status = ""
 	case spinner.TickMsg:
