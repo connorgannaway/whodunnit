@@ -29,7 +29,10 @@ var (
 
 
 func BlameRepo(rootFs string) error {
-	numWorkers := runtime.NumCPU()
+	numWorkers := runtime.NumCPU()/2
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
 	jobs := make(chan BlameJob)
 	var wg sync.WaitGroup
 	wg.Add(numWorkers)
