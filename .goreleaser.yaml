@@ -129,8 +129,32 @@ brews:
       token: "{{ .Env.HOMEBREW_TOKEN }}"
 
 nfpms:
-  - id: packages # here we say that artifacts built with nfpm will be identified with `packages` string.
-    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+  # note that this is an array of nfpm configs
+  - #
+    # ID of the nfpm config, must be unique.
+    #
+    # Default: 'default'.
+    id: packages
+
+    # Name of the package.
+    #
+    # Default: ProjectName.
+    # Templates: allowed.
+    package_name: whodunnit
+
+    # Your app's description.
+    #
+    # Default: inferred from global metadata.
+    description: "Tool for counting and blaming lines in a repo."
+
+    license: MIT
+
+    # Formats to be generated.
+    formats:
+      - apk
+      - deb
+      - rpm
+
 publishers:
   - name: fury.io
     # by specifying `packages` id here goreleaser will only use this publisher
