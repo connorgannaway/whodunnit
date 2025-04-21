@@ -128,36 +128,17 @@ brews:
 
       token: "{{ .Env.HOMEBREW_TOKEN }}"
 
-furies:
-  - # Fury account.
-    # Config is skipped if empty
-    account: "{{ .Env.FURY_ACCOUNT }}"
-
-    # Skip this configuration in some conditions.
-    #
-    # Templates: allowed.
-    disable: "{{ .IsNightly }}"
-
-    # Environment variable name to get the push token from.
-    # You might want to change it if you have multiple Fury configurations for
-    # some reason.
-    #
-    # Default: 'FURY_TOKEN'.
-    secret_name: FURY_PUSH_TOKEN
-
-    # IDs to filter by.
-    # configurations get uploaded.
+nfpms:
+  - id: packages # here we say that artifacts built with nfpm will be identified with `packages` string.
+    file_name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+publishers:
+  - name: fury.io
+    # by specifying `packages` id here goreleaser will only use this publisher
+    # with artifacts identified by this id
     ids:
       - packages
-
-    # Formats to upload.
-    # Available options are `apk`, `deb`, and `rpm`.
-    #
-    # Default: ['apk', deb', 'rpm'].
-    formats:
-      - deb
-      - apk
-      - rpm
+    dir: "{{ dir .ArtifactPath }}"
+    cmd: curl -F package=@{{ .ArtifactName }} https://{{ .Env.FURY_TOKEN }}@push.fury.io/{{ .Env.FURY_ACCOUNT }}/
 
 changelog:
   sort: asc
