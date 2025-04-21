@@ -19,6 +19,11 @@ go install github.com/connorgannaway/whodunnit@v0
 # homebrew
 brew tap connorgannaway/whodunnit
 brew install whodunnit
+
+# ubuntu
+echo "deb [trusted=yes] https://apt.fury.io/connorgannaway/ /" | sudo tee /etc/apt/sources.list.d/fury-connorgannaway.list > /dev/null
+sudo apt update
+sudo apt install whodunnit
 ```
 
 ## Usage
