@@ -14,6 +14,9 @@ type BlameCount struct {
 	Author      string
 	Count       int
 	LinesByType map[string]*FileCount
+
+	SortedAlphabeticalKeys []string
+	SortedCountsKeys      []string
 }
 
 type BlameJob struct {
@@ -131,6 +134,7 @@ func StartBlameRepo(rootFs string) tea.Cmd {
 			return BlameErrorMsg{Error: err}
 		}
 
+		// Sort Contributors by count
 		keys := make([]string, 0, len(BlameCounts))
 		for k := range BlameCounts {
 			keys = append(keys, k)
@@ -138,6 +142,24 @@ func StartBlameRepo(rootFs string) tea.Cmd {
 		sort.Slice(keys, func(i, j int) bool {
 			return BlameCounts[keys[i]].Count > BlameCounts[keys[j]].Count
 		})
+
+		// Create alphabetical and count sorted key arrays
+		for _, k := range keys {
+			bc := BlameCounts[k]
+			var filetypeKeys []string
+			for k := range bc.LinesByType {
+				filetypeKeys = append(filetypeKeys, k)
+			}
+			sort.Strings(filetypeKeys)
+			bc.SortedAlphabeticalKeys = filetypeKeys
+
+			SortedCountsKeys := make([]string, len(filetypeKeys))
+    		copy(SortedCountsKeys, filetypeKeys)
+			sort.Slice(SortedCountsKeys, func(i, j int) bool {
+				return bc.LinesByType[SortedCountsKeys[i]].Count > bc.LinesByType[SortedCountsKeys[j]].Count
+			})
+			bc.SortedCountsKeys = SortedCountsKeys
+		}
 
 		return BlameDoneMsg{Counts: BlameCounts, SortedKeys: keys}
 	}

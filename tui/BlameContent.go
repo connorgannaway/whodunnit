@@ -16,6 +16,7 @@ type blameContentModel struct {
 	counts               map[string]*count.BlameCount
 	sortedCountsKeyArray []string
 	isGitRepo            bool
+	sortBy 		   SortType
 
 	viewport viewport.Model
 	ready    bool
@@ -24,6 +25,7 @@ type blameContentModel struct {
 func newBlameContentModel() blameContentModel {
 	return blameContentModel{
 		isGitRepo: true,
+		sortBy: SortTypeAlphabetical,
 	}
 }
 
@@ -56,6 +58,7 @@ func (c blameContentModel) generateContent() string {
 				Render(truncateString(c.counts[k].Author, authorColWidth))
 			totalStr := lipgloss.NewStyle().
 				Align(lipgloss.Right).
+				Bold(true).
 				Width(COUNT_WIDTH).
 				Render(strconv.Itoa(c.counts[k].Count))
 			line := authorStr + totalStr
@@ -64,7 +67,16 @@ func (c blameContentModel) generateContent() string {
 			}
 			content += line + "\n"
 
-			for _, f := range c.counts[k].LinesByType {
+			var LinesByTypeKeys []string
+			if c.sortBy == SortTypeAlphabetical {
+				LinesByTypeKeys = c.counts[k].SortedAlphabeticalKeys
+			} else {
+				LinesByTypeKeys = c.counts[k].SortedCountsKeys
+			}
+
+			for _, j := range LinesByTypeKeys {
+				f := c.counts[k].LinesByType[j]
+				
 				var filetypeColWidth int
 				if vpWidth < CONTENT_TOTAL_WIDTH {
 					filetypeColWidth = vpWidth - COUNT_WIDTH - 2

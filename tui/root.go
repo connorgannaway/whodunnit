@@ -24,6 +24,8 @@ type rootModel struct {
 	headerHeight  int
 
 	activePanel int
+
+	sortBy SortType
 }
 
 const (
@@ -43,6 +45,7 @@ func NewRootModel(rootfs string) rootModel {
 		footer:       newFooterModel(),
 		errors:       []error{},
 		activePanel:  0,
+		sortBy:       SortTypeAlphabetical,
 	}
 }
 
@@ -85,6 +88,20 @@ func (r rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					r.activePanel = 0
 					cmds = append(cmds, SetActivePanel(0))
 				}
+			}
+		case "s":
+			if r.sortBy == SortTypeAlphabetical {
+				r.sortBy = SortTypeCount
+			  } else {
+				r.sortBy = SortTypeAlphabetical
+			  }
+			  r.lineContent.sortBy = r.sortBy
+			if r.lineContent.ready {
+				r.lineContent.viewport.SetContent(r.lineContent.generateContent())
+			}
+			r.blameContent.sortBy = r.sortBy
+			if r.blameContent.ready {
+				r.blameContent.viewport.SetContent(r.blameContent.generateContent())
 			}
 		}
 	case tea.WindowSizeMsg:

@@ -38,6 +38,7 @@ func newFooterModel() footerModel {
 		controls: []control{
 			{key: "↑", desc: "Move Up"},
 			{key: "↓", desc: "Move Down"},
+			{key: "s", desc: "Change Sort"},
 			{key: "q", desc: "Quit"},
 			//{key: "?", desc: "Info"},
 		},
@@ -45,6 +46,7 @@ func newFooterModel() footerModel {
 			{key: "↑", desc: "Move Up"},
 			{key: "↓", desc: "Move Down"},
 			{key: "←/→", desc: "Switch Panels"},
+			{key: "s", desc: "Change Sort"},
 			{key: "q", desc: "Quit"},
 			//{key: "?", desc: "Info"},
 		},

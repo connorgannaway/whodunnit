@@ -113,9 +113,18 @@ func Walk(rootDir string) tea.Msg {
 	}
 	sort.Strings(FileTypeKeys)
 
+	SortedCountsKeys := make([]string, len(FileTypeKeys))
+    copy(SortedCountsKeys, FileTypeKeys)
+	sort.Slice(SortedCountsKeys, func(i, j int) bool {
+        return Counts[SortedCountsKeys[i]].Count > Counts[SortedCountsKeys[j]].Count
+    })
+
+	
+
 	return WalkDoneMsg{
 		Counts:               Counts,
-		SortedCountsKeyArray: FileTypeKeys,
+		SortedAlphabeticalKeys: FileTypeKeys,
+		SortedCountsKeys:     SortedCountsKeys,
 		TotalLines:           TotalLines,
 	}
 }

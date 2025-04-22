@@ -14,10 +14,18 @@ import (
 const FILETYPE_WIDTH int = 20
 const COUNT_WIDTH int = 12
 const CONTENT_TOTAL_WIDTH int = FILETYPE_WIDTH + COUNT_WIDTH
+type SortType rune
+
+const (
+    SortTypeAlphabetical SortType = 'a'
+    SortTypeCount        SortType = 'c'
+)
 
 type lineContentModel struct {
 	counts               map[string]count.FileCount
-	sortedCountsKeyArray []string
+	sortedAlphabeticalKeys []string
+	sortedCountsKeys []string
+	sortBy 		 SortType
 	totalLines           int
 
 	viewport viewport.Model
@@ -27,8 +35,14 @@ type lineContentModel struct {
 func newLineContentModel() lineContentModel {
 	return lineContentModel{
 		counts:               make(map[string]count.FileCount),
-		sortedCountsKeyArray: []string{},
+		sortedAlphabeticalKeys: []string{},
+		sortedCountsKeys: []string{},
+		sortBy:               SortTypeAlphabetical,
 	}
+}
+
+func (c lineContentModel) GetSortType() SortType {
+	return c.sortBy
 }
 
 func (c lineContentModel) generateContent() string {
@@ -67,7 +81,14 @@ func (c lineContentModel) generateContent() string {
 	}
 	content += line + "\n"
 
-	for _, k := range c.sortedCountsKeyArray {
+	var keys []string
+	if c.sortBy == SortTypeCount {
+		keys = c.sortedCountsKeys
+	} else {
+		keys = c.sortedAlphabeticalKeys
+	}
+
+	for _, k := range keys {
 		v := c.counts[k]
 		colorCode := enry.GetColor(v.Filetype)
 		truncated := truncateString(v.Filetype, filetypeColWidth)
@@ -95,7 +116,8 @@ func (c *lineContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 	switch m := msg.(type) {
 	case count.WalkDoneMsg:
 		c.counts = m.Counts
-		c.sortedCountsKeyArray = m.SortedCountsKeyArray
+		c.sortedAlphabeticalKeys = m.SortedAlphabeticalKeys
+		c.sortedCountsKeys = m.SortedCountsKeys
 		c.totalLines = m.TotalLines
 		if c.ready {
 			c.viewport.SetContent(c.generateContent())

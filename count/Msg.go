@@ -2,7 +2,8 @@ package count
 
 type WalkDoneMsg struct {
 	Counts               map[string]FileCount
-	SortedCountsKeyArray []string
+	SortedAlphabeticalKeys []string
+	SortedCountsKeys []string
 	TotalLines           int
 }
 
