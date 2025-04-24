@@ -12,7 +12,29 @@ import (
 	"github.com/connorgannaway/whodunnit/tui/JsonExport"
 )
 
+
 var Version = "dev"
+
+func init() {
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "Usage:\n  %s [options] [repo]\n\n", os.Args[0])
+
+		fmt.Fprintln(os.Stderr, "Options:")
+		flag.PrintDefaults()
+
+		fmt.Fprintln(os.Stderr, `
+Examples:
+  # scan all files, including configuration files
+  whodunnit --withConfigFiles
+
+  # scan all files, including configuration files, of the target directory and output to JSON
+  whodunnit --withConfigFiles --json repos/target
+
+For more information, see https://github.com/connorgannaway/whodunnit.
+`)
+	}
+}
+
 
 func main() {
 	df := flag.Bool("withDotFiles", false, "include dot files")
