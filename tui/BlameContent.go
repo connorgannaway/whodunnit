@@ -16,7 +16,7 @@ type blameContentModel struct {
 	counts               map[string]*count.BlameCount
 	sortedCountsKeyArray []string
 	isGitRepo            bool
-	sortBy 		   SortType
+	sortBy               SortType
 
 	viewport viewport.Model
 	ready    bool
@@ -25,7 +25,7 @@ type blameContentModel struct {
 func newBlameContentModel() blameContentModel {
 	return blameContentModel{
 		isGitRepo: true,
-		sortBy: SortTypeAlphabetical,
+		sortBy:    SortTypeAlphabetical,
 	}
 }
 
@@ -76,7 +76,7 @@ func (c blameContentModel) generateContent() string {
 
 			for _, j := range LinesByTypeKeys {
 				f := c.counts[k].LinesByType[j]
-				
+
 				var filetypeColWidth int
 				if vpWidth < CONTENT_TOTAL_WIDTH {
 					filetypeColWidth = vpWidth - COUNT_WIDTH - 2
@@ -126,7 +126,7 @@ func (c *blameContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 			c.viewport.SetContent(c.generateContent())
 		}
 	case count.BlameErrorMsg:
-		if errors.Is(m.Error, git.ErrRepositoryNotExists) {
+		if errors.Is(m.Err, git.ErrRepositoryNotExists) {
 			c.isGitRepo = false
 			c.viewport.SetContent(c.generateContent())
 		}

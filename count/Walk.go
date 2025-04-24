@@ -58,7 +58,7 @@ func loadGitignore(dir string) (IgnoreFunc, error) {
 	}, nil
 }
 
-func walkDir(root string, parentIgnore IgnoreFunc) error {
+func walkDir(root string, parentIgnore IgnoreFunc, fileExclusions *Ignorer) error {
 	currentIgnore, err := loadGitignore(root)
 	if err != nil {
 		return err
@@ -91,19 +91,34 @@ func walkDir(root string, parentIgnore IgnoreFunc) error {
 			continue
 		}
 		if entry.IsDir() {
-			if err := walkDir(entryPath, ignoreFn); err != nil {
+			if err := walkDir(entryPath, ignoreFn, fileExclusions); err != nil {
 				return err
 			}
 		} else {
-			CountLines(entryPath)
+			content, err := os.ReadFile(entryPath)
+			if err != nil {
+				return err
+			}
+
+			if fileExclusions.IsIgnored(entryPath, content) {
+				continue
+			}
+			CountLines(entryPath, content)
 		}
 	}
 
 	return nil
 }
 
-func Walk(rootDir string) tea.Msg {
-	if err := walkDir(rootDir, nil); err != nil {
+func Walk(rootDir string, filetypeExclusionConfig IgnoreConfig) tea.Msg {
+	fileExclusions := NewIgnorer(
+		WithDotFiles(filetypeExclusionConfig.IgnoreDotFiles),
+		WithConfigFiles(filetypeExclusionConfig.IgnoreConfigFiles),
+		WithGeneratedFiles(filetypeExclusionConfig.IgnoreGeneratedFiles),
+		WithVendorFiles(filetypeExclusionConfig.IgnoreVendorFiles),
+	)
+
+	if err := walkDir(rootDir, nil, fileExclusions); err != nil {
 		return WalkErrorMsg{Err: err}
 	}
 
@@ -114,17 +129,15 @@ func Walk(rootDir string) tea.Msg {
 	sort.Strings(FileTypeKeys)
 
 	SortedCountsKeys := make([]string, len(FileTypeKeys))
-    copy(SortedCountsKeys, FileTypeKeys)
+	copy(SortedCountsKeys, FileTypeKeys)
 	sort.Slice(SortedCountsKeys, func(i, j int) bool {
-        return Counts[SortedCountsKeys[i]].Count > Counts[SortedCountsKeys[j]].Count
-    })
-
-	
+		return Counts[SortedCountsKeys[i]].Count > Counts[SortedCountsKeys[j]].Count
+	})
 
 	return WalkDoneMsg{
-		Counts:               Counts,
+		Counts:                 Counts,
 		SortedAlphabeticalKeys: FileTypeKeys,
-		SortedCountsKeys:     SortedCountsKeys,
-		TotalLines:           TotalLines,
+		SortedCountsKeys:       SortedCountsKeys,
+		TotalLines:             TotalLines,
 	}
 }

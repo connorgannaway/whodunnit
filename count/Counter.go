@@ -25,38 +25,13 @@ var Counts map[string]FileCount = make(map[string]FileCount)
 var Files []ValidFile = make([]ValidFile, 0)
 var TotalLines int
 
-func CountLines(filePath string) (int, error) {
+func CountLines(filePath string, content []byte) (int, error) {
 	base := filepath.Base(filePath)
 	dot := strings.Index(base, ".")
 	if dot == -1 {
 		return 0, nil
 	}
-	if enry.IsDotFile(filePath) {
-		return 0, nil
-	}
-	if enry.IsConfiguration(filePath) {
-		return 0, nil
-	}
-
 	extension := base[dot:]
-
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		log.Println(err)
-		return 0, err
-	}
-
-	if enry.IsBinary(content) {
-		return 0, nil
-	}
-
-	// if enry.IsGenerated(filePath, content) {
-	// 	return 0, nil
-	// }
-
-	if enry.IsVendor(filePath) {
-		return 0, nil
-	}
 
 	ftype := enry.GetLanguage(filepath.Base(filePath), content)
 	if ftype == "" {

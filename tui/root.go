@@ -25,27 +25,27 @@ type rootModel struct {
 
 	activePanel int
 
-	sortBy SortType
+	sortBy           SortType
+	fileIgnoreConfig count.IgnoreConfig
 }
 
-const (
-	containerTopPadding    = 1
-	containerBottomPadding = 0
-	containerLeftPadding   = 2
-	containerRightPadding  = 2
-)
+func NewRootModel(rootfs string, ign *count.IgnoreConfig) rootModel {
+	var ignoreCfg count.IgnoreConfig
+	if ign == nil {
+		ignoreCfg = count.DefaultIgnoreConfig()
+	} else {
+		ignoreCfg = *ign
+	}
 
-const SINGLE_PANEL_WIDTH = 50
-
-func NewRootModel(rootfs string) rootModel {
 	return rootModel{
-		header:       newHeaderModel(rootfs),
-		lineContent:  newLineContentModel(),
-		blameContent: newBlameContentModel(),
-		footer:       newFooterModel(),
-		errors:       []error{},
-		activePanel:  0,
-		sortBy:       SortTypeAlphabetical,
+		header:           newHeaderModel(rootfs),
+		lineContent:      newLineContentModel(),
+		blameContent:     newBlameContentModel(),
+		footer:           newFooterModel(),
+		errors:           []error{},
+		activePanel:      0,
+		sortBy:           SortTypeAlphabetical,
+		fileIgnoreConfig: ignoreCfg,
 	}
 }
 
@@ -57,7 +57,7 @@ func subscribeBlameStatus() tea.Cmd {
 
 func (r rootModel) Init() tea.Cmd {
 	return func() tea.Msg {
-		return count.Walk(r.header.path)
+		return count.Walk(r.header.path, r.fileIgnoreConfig)
 	}
 }
 
@@ -72,8 +72,8 @@ func (r rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case count.BlameStatusMsg:
 		cmds = append(cmds, subscribeBlameStatus())
 	case count.BlameErrorMsg:
-		if !errors.Is(m.Error, git.ErrRepositoryNotExists) {
-			r.errors = append(r.errors, m.Error)
+		if !errors.Is(m.Err, git.ErrRepositoryNotExists) {
+			r.errors = append(r.errors, m.Err)
 		}
 	case tea.KeyMsg:
 		switch m.String() {
@@ -92,10 +92,10 @@ func (r rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "s":
 			if r.sortBy == SortTypeAlphabetical {
 				r.sortBy = SortTypeCount
-			  } else {
+			} else {
 				r.sortBy = SortTypeAlphabetical
-			  }
-			  r.lineContent.sortBy = r.sortBy
+			}
+			r.lineContent.sortBy = r.sortBy
 			if r.lineContent.ready {
 				r.lineContent.viewport.SetContent(r.lineContent.generateContent())
 			}

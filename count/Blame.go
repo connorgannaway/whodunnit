@@ -16,7 +16,7 @@ type BlameCount struct {
 	LinesByType map[string]*FileCount
 
 	SortedAlphabeticalKeys []string
-	SortedCountsKeys      []string
+	SortedCountsKeys       []string
 }
 
 type BlameJob struct {
@@ -25,14 +25,13 @@ type BlameJob struct {
 }
 
 var (
-	BlameCounts          = make(map[string]*BlameCount)
-	blameCountsLocker    sync.Mutex
-	BlameStatusChannel   = make(chan tea.Msg)
+	BlameCounts        = make(map[string]*BlameCount)
+	blameCountsLocker  sync.Mutex
+	BlameStatusChannel = make(chan tea.Msg)
 )
 
-
 func BlameRepo(rootFs string) error {
-	numWorkers := runtime.NumCPU()/2
+	numWorkers := runtime.NumCPU() / 2
 	if numWorkers < 1 {
 		numWorkers = 1
 	}
@@ -49,7 +48,7 @@ func BlameRepo(rootFs string) error {
 			// Each worker opens its own repo/commit object
 			repo, err := git.PlainOpen(rootFs)
 			if err != nil {
-				return 
+				return
 			}
 			headRef, err := repo.Head()
 			if err != nil {
@@ -77,7 +76,7 @@ func BlameRepo(rootFs string) error {
 
 				blame, err := git.Blame(commit, localizedPath)
 				if err != nil {
-					continue 
+					continue
 				}
 
 				// Update the shared counts
@@ -118,20 +117,20 @@ func StartBlameRepo(rootFs string) tea.Cmd {
 		//Catch errors before creating workers
 		repo, err := git.PlainOpen(rootFs)
 		if err != nil {
-			return BlameErrorMsg{Error: err}
+			return BlameErrorMsg{Err: err}
 		}
 		headRef, err := repo.Head()
 		if err != nil {
-			return BlameErrorMsg{Error: err}
+			return BlameErrorMsg{Err: err}
 		}
 		_, err = repo.CommitObject(headRef.Hash())
 		if err != nil {
-			return BlameErrorMsg{Error: err}
+			return BlameErrorMsg{Err: err}
 		}
 
 		// Blame the repo
 		if err := BlameRepo(rootFs); err != nil {
-			return BlameErrorMsg{Error: err}
+			return BlameErrorMsg{Err: err}
 		}
 
 		// Sort Contributors by count
@@ -154,7 +153,7 @@ func StartBlameRepo(rootFs string) tea.Cmd {
 			bc.SortedAlphabeticalKeys = filetypeKeys
 
 			SortedCountsKeys := make([]string, len(filetypeKeys))
-    		copy(SortedCountsKeys, filetypeKeys)
+			copy(SortedCountsKeys, filetypeKeys)
 			sort.Slice(SortedCountsKeys, func(i, j int) bool {
 				return bc.LinesByType[SortedCountsKeys[i]].Count > bc.LinesByType[SortedCountsKeys[j]].Count
 			})

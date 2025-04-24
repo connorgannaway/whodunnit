@@ -11,22 +11,12 @@ import (
 	"github.com/connorgannaway/whodunnit/count"
 )
 
-const FILETYPE_WIDTH int = 20
-const COUNT_WIDTH int = 12
-const CONTENT_TOTAL_WIDTH int = FILETYPE_WIDTH + COUNT_WIDTH
-type SortType rune
-
-const (
-    SortTypeAlphabetical SortType = 'a'
-    SortTypeCount        SortType = 'c'
-)
-
 type lineContentModel struct {
-	counts               map[string]count.FileCount
+	counts                 map[string]count.FileCount
 	sortedAlphabeticalKeys []string
-	sortedCountsKeys []string
-	sortBy 		 SortType
-	totalLines           int
+	sortedCountsKeys       []string
+	sortBy                 SortType
+	totalLines             int
 
 	viewport viewport.Model
 	ready    bool
@@ -34,10 +24,10 @@ type lineContentModel struct {
 
 func newLineContentModel() lineContentModel {
 	return lineContentModel{
-		counts:               make(map[string]count.FileCount),
+		counts:                 make(map[string]count.FileCount),
 		sortedAlphabeticalKeys: []string{},
-		sortedCountsKeys: []string{},
-		sortBy:               SortTypeAlphabetical,
+		sortedCountsKeys:       []string{},
+		sortBy:                 SortTypeAlphabetical,
 	}
 }
 

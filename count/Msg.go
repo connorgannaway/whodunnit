@@ -1,10 +1,10 @@
 package count
 
 type WalkDoneMsg struct {
-	Counts               map[string]FileCount
+	Counts                 map[string]FileCount
 	SortedAlphabeticalKeys []string
-	SortedCountsKeys []string
-	TotalLines           int
+	SortedCountsKeys       []string
+	TotalLines             int
 }
 
 type WalkErrorMsg struct {
@@ -17,11 +17,15 @@ type BlameDoneMsg struct {
 }
 
 type BlameErrorMsg struct {
-	Error error
+	Err error
 }
 
 type BlameStatusMsg struct {
 	CurrentFile int
 	TotalFiles  int
-	Filepath string
+	Filepath    string
+}
+
+type WalkStatusMsg struct {
+	Message string
 }
