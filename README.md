@@ -2,6 +2,8 @@
 
 Count and blame your repo.
 
+![](demo.gif)
+
 ## About
 
 Whodunnit is a command-line TUI that counts and categorizes the number of lines in a repo by filetype and contributor. It was originally created to gather data about a class project, and expanded on to be more useable and useful.
