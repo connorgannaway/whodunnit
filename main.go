@@ -12,6 +12,9 @@ import (
 	"github.com/connorgannaway/whodunnit/tui/JsonExport"
 )
 
+
+var Version = "dev"
+
 func init() {
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage:\n  %s [options] [repo]\n\n", os.Args[0])
@@ -32,13 +35,20 @@ For more information, see https://github.com/connorgannaway/whodunnit.
 	}
 }
 
+
 func main() {
 	df := flag.Bool("withDotFiles", false, "include dot files")
 	cf := flag.Bool("withConfigFiles", false, "include config files")
 	gf := flag.Bool("withGeneratedFiles", false, "include generated files")
 	vf := flag.Bool("withVendorFiles", false, "include vendor files")
+	verf := flag.Bool("version", false, "print version")
 	json := flag.Bool("json", false, "write json to stdout")
 	flag.Parse()
+
+	if *verf {
+		fmt.Printf("Version: %s\n", Version)
+		return
+	}
 
 	rootfs := flag.Arg(0)
 	if rootfs == "" {
