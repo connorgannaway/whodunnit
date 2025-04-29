@@ -7,6 +7,7 @@ import (
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/connorgannaway/whodunnit/count"
 	"github.com/connorgannaway/whodunnit/tui"
 	"github.com/connorgannaway/whodunnit/tui/JsonExport"
@@ -15,15 +16,17 @@ import (
 
 var Version = "dev"
 
+var BoldUnderline = lipgloss.NewStyle().Bold(true).Underline(true)
+
 func init() {
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "Usage:\n  %s [options] [repo]\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "%s\n  %s [options] [repo]\n\n",BoldUnderline.Render("Usage:"), os.Args[0])
 
-		fmt.Fprintln(os.Stderr, "Options:")
+		fmt.Fprintln(os.Stderr, BoldUnderline.Render("Options:"))
 		flag.PrintDefaults()
 
-		fmt.Fprintln(os.Stderr, `
-Examples:
+		fmt.Fprintf(os.Stderr, `
+%s
   # scan all files, including configuration files
   whodunnit --withConfigFiles
 
@@ -31,7 +34,7 @@ Examples:
   whodunnit --withConfigFiles --json repos/target
 
 For more information, see https://github.com/connorgannaway/whodunnit.
-`)
+`, BoldUnderline.Render("Examples:"))
 	}
 }
 
