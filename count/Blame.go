@@ -1,3 +1,11 @@
+/*
+count/Blame.go
+
+Functionality to blame the set of files processed by the directory walk.
+It spawns workers to process files in parallel and update global blame state
+with the number of lines attributed to each author
+*/
+
 package count
 
 import (
@@ -10,6 +18,7 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
+// Holds blame data for a single author
 type BlameCount struct {
 	Author      string
 	Count       int
@@ -24,12 +33,18 @@ type BlameJob struct {
 	index int
 }
 
+
 var (
+	// Global blame state
 	BlameCounts        = make(map[string]*BlameCount)
 	blameCountsLocker  sync.Mutex
+	// Channel for sending messages to the TUI
 	BlameStatusChannel = make(chan tea.Msg)
 )
 
+// BlameRepo iterates over all valid files found duing the file walk
+// and blames each file in parallel. It updates the BlameCounts map
+// with the number of lines attributed to each author.
 func BlameRepo(rootFs string) error {
 	numWorkers := runtime.NumCPU() / 2
 	if numWorkers < 1 {
@@ -41,6 +56,7 @@ func BlameRepo(rootFs string) error {
 
 	totalFileCount := len(Files)
 
+	// start workers
 	for w := 0; w < numWorkers; w++ {
 		go func() {
 			defer wg.Done()
@@ -59,6 +75,7 @@ func BlameRepo(rootFs string) error {
 				return
 			}
 
+			// process until jobs channel is closed
 			for job := range jobs {
 				file := job.file
 				current := job.index
@@ -103,7 +120,7 @@ func BlameRepo(rootFs string) error {
 		}()
 	}
 
-	// feed jobs
+	// feed jobs from global valid files list
 	for i, f := range Files {
 		jobs <- BlameJob{file: f, index: i + 1}
 	}
@@ -112,6 +129,7 @@ func BlameRepo(rootFs string) error {
 	return nil
 }
 
+// Bubble tea compatible command to start the blame process
 func StartBlameRepo(rootFs string) tea.Cmd {
 	return func() tea.Msg {
 		//Catch errors before creating workers

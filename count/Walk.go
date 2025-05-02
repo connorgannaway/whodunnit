@@ -1,3 +1,11 @@
+/*
+count/Walk.go
+
+Functionality to walk a directory tree while respecting .gitignore files
+and other file exclusion rules set by the user. Exposes a bubbletea-compatible
+Walk function. Counting logic is delegated to count/Counter.CountLines.
+*/
+
 package count
 
 import (
@@ -24,6 +32,7 @@ func loadGitignore(dir string) (IgnoreFunc, error) {
 	}
 	defer f.Close()
 
+	// Read in gitignore patterns
 	var patterns []string
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
@@ -37,6 +46,7 @@ func loadGitignore(dir string) (IgnoreFunc, error) {
 		return nil, err
 	}
 
+	// Return a function that checks if a path matches any of the patterns
 	return func(path string, isDir bool) bool {
 		rel, err := filepath.Rel(dir, path)
 		if err != nil {
@@ -64,6 +74,7 @@ func walkDir(root string, parentIgnore IgnoreFunc, fileExclusions *Ignorer) erro
 		return err
 	}
 
+	// Combine parent and current ignore functions, along with ignoring .git directories
 	ignoreFn := func(path string, isDir bool) bool {
 		if isDir && filepath.Base(path) == ".git" {
 			return true
@@ -84,25 +95,29 @@ func walkDir(root string, parentIgnore IgnoreFunc, fileExclusions *Ignorer) erro
 
 	for _, entry := range entries {
 		entryPath := filepath.Join(root, entry.Name())
+
+		// check if the entry should be ignored based on gitignores
 		if ignoreFn(entryPath, entry.IsDir()) {
-			if entry.IsDir() {
-				continue
-			}
 			continue
 		}
+
+		// Recursively walk directories
 		if entry.IsDir() {
 			if err := walkDir(entryPath, ignoreFn, fileExclusions); err != nil {
 				return err
 			}
 		} else {
+			// Load file content for filetype detection
 			content, err := os.ReadFile(entryPath)
 			if err != nil {
 				return err
 			}
-
+			// Check if the file should be ignored based on app config
 			if fileExclusions.IsIgnored(entryPath, content) {
 				continue
 			}
+			// Pass the file to count/Counter.CountLines for handling 
+			// filetype detection and line counting
 			CountLines(entryPath, content)
 		}
 	}
@@ -111,6 +126,7 @@ func walkDir(root string, parentIgnore IgnoreFunc, fileExclusions *Ignorer) erro
 }
 
 func Walk(rootDir string, filetypeExclusionConfig IgnoreConfig) tea.Msg {
+	// Create ignorer from exclusion config
 	fileExclusions := NewIgnorer(
 		WithDotFiles(filetypeExclusionConfig.IgnoreDotFiles),
 		WithConfigFiles(filetypeExclusionConfig.IgnoreConfigFiles),
@@ -122,6 +138,7 @@ func Walk(rootDir string, filetypeExclusionConfig IgnoreConfig) tea.Msg {
 		return WalkErrorMsg{Err: err}
 	}
 
+	// Create alphabetical and count sorted key lists
 	var FileTypeKeys []string
 	for k := range Counts {
 		FileTypeKeys = append(FileTypeKeys, k)

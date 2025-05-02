@@ -1,3 +1,11 @@
+/*
+tui/Footer.go
+
+Implements the footer model for the TUI.
+This displays the current applicable controls for the TUI
+and the latest received status message.
+*/
+
 package tui
 
 import (
@@ -23,24 +31,19 @@ type footerModel struct {
 	spinner    spinner.Model
 }
 
-var footerBold = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("7")).Bold(true)
-var footerText = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("8"))
-var footerSeparator = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("8"))
-
 func newFooterModel() footerModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 	s.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
 	return footerModel{
+		// Displayed controls at normal width
 		controls: []control{
 			{key: "↑", desc: "Move Up"},
 			{key: "↓", desc: "Move Down"},
 			{key: "s", desc: "Change Sort"},
 			{key: "q", desc: "Quit"},
 		},
+		// Displayed controls at narrow width
 		controlsLR: []control{
 			{key: "↑", desc: "Move Up"},
 			{key: "↓", desc: "Move Down"},
@@ -49,7 +52,7 @@ func newFooterModel() footerModel {
 			{key: "q", desc: "Quit"},
 		},
 		separator: " | ",
-		status:    "Walking directory...",
+		status:    "Walking directory...", // Pre-load walking status
 		spinner:   s,
 	}
 }
@@ -95,6 +98,7 @@ func (f footerModel) View() string {
 
 	for i, c := range controlsArray {
 		s += footerBold.Render(c.key) + " " + footerText.Render(c.desc)
+		// Split the controls into two lines if the window is narrow
 		if f.showLR && i == (len(controlsArray)/2-1) {
 			s += "\n"
 			continue
@@ -109,3 +113,10 @@ func (f footerModel) View() string {
 	}
 	return lipgloss.PlaceHorizontal(f.width, lipgloss.Center, s) + "\n" + statusLine
 }
+
+var footerBold = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("7")).Bold(true)
+var footerText = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("8"))
+var footerSeparator = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("8"))

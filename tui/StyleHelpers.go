@@ -1,3 +1,9 @@
+/*
+StyleHelpers.go
+
+Style helpers for the TUI package
+*/
+
 package tui
 
 func truncateString(s string, maxWidth int) string {

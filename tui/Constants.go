@@ -1,3 +1,9 @@
+/*
+tui/Constants.go
+
+Constants used in the TUI package
+*/
+
 package tui
 
 const FILETYPE_WIDTH int = 20

@@ -1,3 +1,10 @@
+/*
+counts/Ignore.go
+
+Extendable ignore filter and wrapper functions around go-enry
+to check if a file should be ignored based on its path or content.
+*/
+
 package count
 
 import "github.com/go-enry/go-enry/v2"
@@ -24,6 +31,7 @@ func DefaultIgnoreConfig() IgnoreConfig {
 	}
 }
 
+// Creates a new Ignorer with passed filter functions.
 func NewIgnorer(opts ...FilterFunc) *Ignorer {
 	ign := &Ignorer{
 		filters: []FilterFunc{
@@ -40,6 +48,7 @@ func NewIgnorer(opts ...FilterFunc) *Ignorer {
 	return ign
 }
 
+// Checks if a file should be ignored based on filter functions.
 func (i *Ignorer) IsIgnored(path string, content []byte) bool {
 	for _, f := range i.filters {
 		if f(path, content) {
@@ -48,6 +57,8 @@ func (i *Ignorer) IsIgnored(path string, content []byte) bool {
 	}
 	return false
 }
+
+// -- Filter functions --
 
 func WithDotFiles(enabled bool) FilterFunc {
 	if !enabled {

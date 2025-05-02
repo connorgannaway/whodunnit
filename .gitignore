@@ -1,3 +1,5 @@
 whodunnit
-.DS_Store# Added by goreleaser init:
+.DS_Store
+
+# Added by goreleaser init:
 dist/

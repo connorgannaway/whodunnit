@@ -1,3 +1,11 @@
+/*
+tui/BlameContent.go
+
+Implementation of the blame content model for the TUI.
+This model displays per-author git blame line counts broken down by
+filetype. This is rendered in a viewport on the right side of the TUI.
+*/
+
 package tui
 
 import (
@@ -39,6 +47,7 @@ func (c blameContentModel) generateContent() string {
 		vpWidth = CONTENT_TOTAL_WIDTH
 	}
 
+	// Calculate width like LineContent.go
 	var authorColWidth int
 	if vpWidth < CONTENT_TOTAL_WIDTH {
 		authorColWidth = vpWidth - COUNT_WIDTH
@@ -50,7 +59,12 @@ func (c blameContentModel) generateContent() string {
 	}
 
 	if len(c.sortedCountsKeyArray) > 0 {
+
+		// Loop through the map by the sorted counts keys 
+		// to display authors in order of total lines
 		for _, k := range c.sortedCountsKeyArray {
+
+			// generate author's name and total lines
 			authorStr := lipgloss.NewStyle().
 				Align(lipgloss.Left).
 				Bold(true).
@@ -67,6 +81,7 @@ func (c blameContentModel) generateContent() string {
 			}
 			content += line + "\n"
 
+			// select sort keys to use based on sort type
 			var LinesByTypeKeys []string
 			if c.sortBy == SortTypeAlphabetical {
 				LinesByTypeKeys = c.counts[k].SortedAlphabeticalKeys
@@ -74,9 +89,11 @@ func (c blameContentModel) generateContent() string {
 				LinesByTypeKeys = c.counts[k].SortedCountsKeys
 			}
 
+			// Loop through an author's filetypes and counts
 			for _, j := range LinesByTypeKeys {
 				f := c.counts[k].LinesByType[j]
 
+				// recalculate width with indentation
 				var filetypeColWidth int
 				if vpWidth < CONTENT_TOTAL_WIDTH {
 					filetypeColWidth = vpWidth - COUNT_WIDTH - 2
@@ -86,6 +103,8 @@ func (c blameContentModel) generateContent() string {
 				} else {
 					filetypeColWidth = FILETYPE_WIDTH - 2
 				}
+
+				// create filetype and count string
 				colorCode := enry.GetColor(f.Filetype)
 				truncatedFiletype := truncateString(f.Filetype, filetypeColWidth)
 				filetypeStr := lipgloss.NewStyle().
@@ -142,9 +161,11 @@ func (c *blameContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 		}
 	}
 
+	// Also pass the message to the viewport
 	var vpCmd tea.Cmd
 	c.viewport, vpCmd = c.viewport.Update(msg)
 	cmds = append(cmds, vpCmd)
+	
 	return tea.Batch(cmds...)
 }
 

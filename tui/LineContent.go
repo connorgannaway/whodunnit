@@ -1,3 +1,12 @@
+/*
+tui/LineContent.go
+
+Implements the line content model for the TUI.
+This model displays filetype line counts in the current
+sort order. This is rendered in a viewport on the left side
+of the TUI.
+*/
+
 package tui
 
 import (
@@ -45,6 +54,7 @@ func (c lineContentModel) generateContent() string {
 		vpWidth = CONTENT_TOTAL_WIDTH
 	}
 
+	// Calculate width of filenames
 	var filetypeColWidth int
 	if vpWidth < CONTENT_TOTAL_WIDTH {
 		filetypeColWidth = vpWidth - COUNT_WIDTH
@@ -55,6 +65,7 @@ func (c lineContentModel) generateContent() string {
 		filetypeColWidth = FILETYPE_WIDTH
 	}
 
+	// Generate total lines header
 	totalLabel := lipgloss.NewStyle().
 		Align(lipgloss.Left).
 		Width(filetypeColWidth).
@@ -71,6 +82,7 @@ func (c lineContentModel) generateContent() string {
 	}
 	content += line + "\n"
 
+	// Set keys based on current sort type
 	var keys []string
 	if c.sortBy == SortTypeCount {
 		keys = c.sortedCountsKeys
@@ -78,6 +90,7 @@ func (c lineContentModel) generateContent() string {
 		keys = c.sortedAlphabeticalKeys
 	}
 
+	// Iterate over every filetype, rendering the filetype and count
 	for _, k := range keys {
 		v := c.counts[k]
 		colorCode := enry.GetColor(v.Filetype)
@@ -124,6 +137,7 @@ func (c *lineContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 		}
 	}
 
+	// Also pass the message to the viewport
 	var vpCmd tea.Cmd
 	c.viewport, vpCmd = c.viewport.Update(msg)
 	cmds = append(cmds, vpCmd)

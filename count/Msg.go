@@ -1,3 +1,8 @@
+/*
+count/Msg.go
+Bubble Tea message types used in the count package.
+*/
+
 package count
 
 type WalkDoneMsg struct {

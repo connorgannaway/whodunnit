@@ -1,3 +1,11 @@
+/*
+tui/JsonExport/JsonExport.go
+
+JsonExport provides functionality to export the data collected by the
+application in JSON format separate to the TUI. It drives the file walk
+and blame process and assembles the data into a JSON structure.
+*/
+
 package JsonExport
 
 import (
@@ -17,6 +25,8 @@ type jsonExportBody struct {
 	Blame            map[string]*count.BlameCount
 }
 
+// ExportJSON returns a JSON representation of the data collected by the
+// application. It handles the file walk and blame process
 func ExportJSON(rootfs string, cfg count.IgnoreConfig) ([]byte, error) {
 	walkMsg := count.Walk(rootfs, cfg)
 	if errMsg, ok := walkMsg.(count.WalkErrorMsg); ok {

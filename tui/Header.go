@@ -1,3 +1,11 @@
+/*
+tui/Header.go
+
+Implements the header model for the TUI.
+Displays the target directory name, git information if
+applicable, and the active panel indicator if applicable.
+*/
+
 package tui
 
 import (
@@ -10,16 +18,19 @@ import (
 	"github.com/go-git/go-git/v5"
 )
 
+// Msg containing the active panel index
 type ActivePanelMsg struct {
 	Panel int
 }
 
+// Command to return an ActivePanelMsg
 func SetActivePanel(panel int) tea.Cmd {
 	return func() tea.Msg {
 		return ActivePanelMsg{Panel: panel}
 	}
 }
 
+// Header data model
 type headerModel struct {
 	path          string
 	directoryName string
@@ -30,14 +41,16 @@ type headerModel struct {
 	activePanel   int
 }
 
+// Create a new header model
 func newHeaderModel(path string) headerModel {
+	// evaluate the path
 	cleanPath := filepath.Clean(path)
-
 	absPath, err := filepath.Abs(cleanPath)
 	if err != nil {
 		absPath = cleanPath
 	}
 
+	// Get the directory name
 	d := filepath.Base(absPath)
 	if d == "." || d == "" {
 		if wd, err := os.Getwd(); err == nil {
@@ -47,6 +60,7 @@ func newHeaderModel(path string) headerModel {
 		}
 	}
 
+	// Get the branch name and current commit hash
 	var isGitRepo bool = false
 	var currentBranch string = ""
 	var hash string = ""
@@ -70,36 +84,24 @@ func newHeaderModel(path string) headerModel {
 	}
 }
 
+// Header update function
 func (h *headerModel) Update(msg tea.Msg, width int) tea.Cmd {
 	var cmds []tea.Cmd
+
+	// Header doesn't need many updates...
 	switch m := msg.(type) {
 	case tea.WindowSizeMsg:
-		h.width = width
+		h.width = width // Update model with passed width if the window size message is sent
 	case ActivePanelMsg:
-		h.activePanel = m.Panel
+		h.activePanel = m.Panel // Used to set active panel dot
 	}
 
 	return tea.Batch(cmds...)
 }
 
-var directoryStyle = lipgloss.NewStyle().
-	Bold(true).
-	Border(lipgloss.RoundedBorder()).
-	Padding(0, 1)
-
-var gitStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("7")).
-	SetString(" git: ")
-
-var hashStyle = lipgloss.NewStyle().
-	Foreground(lipgloss.Color("7"))
-
-var boldText = lipgloss.NewStyle().Bold(true)
-
-var activeDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•")
-var inactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")
 
 func (h headerModel) View() string {
+	// Create git information string
 	gitString := ""
 	if h.isGitRepo {
 		gitString = gitStyle.String() + boldText.Render(h.currentBranch) + " "
@@ -108,19 +110,23 @@ func (h headerModel) View() string {
 		}
 	}
 
+	// Create directory name with box
 	dirBox := directoryStyle.Render(h.directoryName)
 	preGitInfo := "──"
 
+	// Create dot string
 	dotString := " " + activeDot + " " + inactiveDot + " "
 	if h.activePanel == 1 {
 		dotString = " " + inactiveDot + " " + activeDot + " "
 	}
 
+	// Calculate the width of the components
 	dirBoxWidth := lipgloss.Width(dirBox)
 	preGitInfoWidth := lipgloss.Width(preGitInfo)
 	gitStringWidth := lipgloss.Width(gitString)
 	dotStringWidth := lipgloss.Width(dotString)
 
+	// calculate filler width
 	var content string
 	var fillerWidth int
 	if h.width <= SINGLE_PANEL_WIDTH {
@@ -131,11 +137,13 @@ func (h headerModel) View() string {
 		content = gitString
 	}
 
+	// Add line to fill the space
 	if fillerWidth < 0 {
 		fillerWidth = 0
 	}
 	filler := strings.Repeat("─", fillerWidth)
 
+	// String everything together
 	return lipgloss.JoinHorizontal(lipgloss.Center,
 		dirBox,
 		preGitInfo,
@@ -143,3 +151,17 @@ func (h headerModel) View() string {
 		filler,
 	)
 }
+
+// Styles for the header
+var directoryStyle = lipgloss.NewStyle().
+	Bold(true).
+	Border(lipgloss.RoundedBorder()).
+	Padding(0, 1)
+var gitStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("7")).
+	SetString(" git: ")
+var hashStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("7"))
+var boldText = lipgloss.NewStyle().Bold(true)
+var activeDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•")
+var inactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")
