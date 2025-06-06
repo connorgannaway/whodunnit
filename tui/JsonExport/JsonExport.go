@@ -26,26 +26,28 @@ type jsonExportBody struct {
 }
 
 // ExportJSON returns a JSON representation of the data collected by the
-// application. It handles the file walk and blame process
+// application. It handles running the file walk and blame process
 func ExportJSON(rootfs string, cfg count.IgnoreConfig) ([]byte, error) {
 	walkMsg := count.Walk(rootfs, cfg)
 	if errMsg, ok := walkMsg.(count.WalkErrorMsg); ok {
 		return nil, fmt.Errorf("walk error: %w", errMsg.Err)
 	}
+	walkData := walkMsg.(count.WalkDoneMsg)
 
-	blameMsg := count.StartBlameRepo(rootfs)()
+	blameMsg := count.StartBlameRepo(rootfs, walkData.ValidFiles)()
 	if errMsg, ok := blameMsg.(count.BlameErrorMsg); ok {
 		if !errors.Is(errMsg.Err, git.ErrRepositoryNotExists) {
 			return nil, fmt.Errorf("blame error: %w", errMsg.Err)
 		}
 	}
+	blameData := blameMsg.(count.BlameDoneMsg)
 
 	body := jsonExportBody{
 		IgnoredFileTypes: cfg,
-		IncludedFiles:    count.Files,
-		TotalLines:       count.TotalLines,
-		FileCounts:       count.Counts,
-		Blame:            count.BlameCounts,
+		IncludedFiles:    walkData.ValidFiles,
+		TotalLines:       walkData.TotalLines,
+		FileCounts:       walkData.Counts,
+		Blame:            blameData.Counts,
 	}
 	return json.Marshal(body)
 }

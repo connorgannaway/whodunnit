@@ -27,20 +27,25 @@ type ValidFile struct {
 	Path     string
 }
 
-// Global result variables
-var Counts map[string]FileCount = make(map[string]FileCount)
-var Files []ValidFile = make([]ValidFile, 0)
-var TotalLines int
+type walkData struct {
+	Counts     map[string]FileCount
+	ValidFiles []ValidFile
+	TotalLines int
+}
 
+type CountLinesReturn struct {
+	Filetype string
+	Count    int
+}
 
 // CountLines counts and returns the number of lines in a file.
 // It also updates the global Counts map, TotalLines variable, and Files list.
-func CountLines(filePath string, content []byte) (int, error) {
+func CountLines(filePath string, content []byte) (CountLinesReturn, error) {
 	base := filepath.Base(filePath)
 	dot := strings.Index(base, ".")
 	if dot == -1 {
 		// No extension, return 0
-		return 0, nil
+		return CountLinesReturn{}, nil
 	}
 	extension := base[dot:]
 
@@ -52,29 +57,20 @@ func CountLines(filePath string, content []byte) (int, error) {
 
 	file, err := os.Open(filePath)
 	if err != nil {
-		return 0, err
+		return CountLinesReturn{}, err
 	}
 	defer file.Close()
 
 	c, err := lineCounter(file)
 	if err != nil {
 		log.Println(err)
-		return 0, err
+		return CountLinesReturn{}, err
 	}
 
-	// Update counts for this file type
-	if _, ok := Counts[ftype]; !ok {
-		Counts[ftype] = FileCount{Filetype: ftype, Count: 0}
-	}
-	Counts[ftype] = FileCount{Filetype: ftype, Count: Counts[ftype].Count + c}
-
-	// record the file
-	Files = append(Files, ValidFile{Filetype: ftype, Path: filePath})
-
-	// Update the total lines count
-	TotalLines = TotalLines + c
-
-	return c, nil
+	return CountLinesReturn{
+		Filetype: ftype,
+		Count:    c,
+	}, nil
 }
 
 // Reads from r in chunks and counts the number of lines.

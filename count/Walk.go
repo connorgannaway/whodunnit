@@ -68,7 +68,7 @@ func loadGitignore(dir string) (IgnoreFunc, error) {
 	}, nil
 }
 
-func walkDir(root string, parentIgnore IgnoreFunc, fileExclusions *Ignorer) error {
+func walkDir(root string, parentIgnore IgnoreFunc, fileExclusions *Ignorer, data *walkData) error {
 	currentIgnore, err := loadGitignore(root)
 	if err != nil {
 		return err
@@ -103,7 +103,7 @@ func walkDir(root string, parentIgnore IgnoreFunc, fileExclusions *Ignorer) erro
 
 		// Recursively walk directories
 		if entry.IsDir() {
-			if err := walkDir(entryPath, ignoreFn, fileExclusions); err != nil {
+			if err := walkDir(entryPath, ignoreFn, fileExclusions, data); err != nil {
 				return err
 			}
 		} else {
@@ -116,12 +116,25 @@ func walkDir(root string, parentIgnore IgnoreFunc, fileExclusions *Ignorer) erro
 			if fileExclusions.IsIgnored(entryPath, content) {
 				continue
 			}
-			// Pass the file to count/Counter.CountLines for handling 
+			// Pass the file to count/Counter.CountLines for handling
 			// filetype detection and line counting
-			CountLines(entryPath, content)
+			returnedCount, err := CountLines(entryPath, content)
+			if err != nil {
+				return err
+			}
+			// Update counts for this file type
+			if _, ok := data.Counts[returnedCount.Filetype]; !ok {
+				data.Counts[returnedCount.Filetype] = FileCount{Filetype: returnedCount.Filetype, Count: 0}
+			}
+			data.Counts[returnedCount.Filetype] = FileCount{Filetype: returnedCount.Filetype, Count: data.Counts[returnedCount.Filetype].Count + returnedCount.Count}
+
+			// record the file
+			data.ValidFiles = append(data.ValidFiles, ValidFile{Filetype: returnedCount.Filetype, Path: entryPath})
+
+			// Update the total lines count
+			data.TotalLines = data.TotalLines + returnedCount.Count
 		}
 	}
-
 	return nil
 }
 
@@ -134,13 +147,17 @@ func Walk(rootDir string, filetypeExclusionConfig IgnoreConfig) tea.Msg {
 		WithVendorFiles(filetypeExclusionConfig.IgnoreVendorFiles),
 	)
 
-	if err := walkDir(rootDir, nil, fileExclusions); err != nil {
+	var walkData walkData
+	walkData.Counts = make(map[string]FileCount)
+	walkData.ValidFiles = make([]ValidFile, 0)
+
+	if err := walkDir(rootDir, nil, fileExclusions, &walkData); err != nil {
 		return WalkErrorMsg{Err: err}
 	}
 
 	// Create alphabetical and count sorted key lists
 	var FileTypeKeys []string
-	for k := range Counts {
+	for k := range walkData.Counts {
 		FileTypeKeys = append(FileTypeKeys, k)
 	}
 	sort.Strings(FileTypeKeys)
@@ -148,13 +165,14 @@ func Walk(rootDir string, filetypeExclusionConfig IgnoreConfig) tea.Msg {
 	SortedCountsKeys := make([]string, len(FileTypeKeys))
 	copy(SortedCountsKeys, FileTypeKeys)
 	sort.Slice(SortedCountsKeys, func(i, j int) bool {
-		return Counts[SortedCountsKeys[i]].Count > Counts[SortedCountsKeys[j]].Count
+		return walkData.Counts[SortedCountsKeys[i]].Count > walkData.Counts[SortedCountsKeys[j]].Count
 	})
 
 	return WalkDoneMsg{
-		Counts:                 Counts,
+		Counts:                 walkData.Counts,
 		SortedAlphabeticalKeys: FileTypeKeys,
 		SortedCountsKeys:       SortedCountsKeys,
-		TotalLines:             TotalLines,
+		TotalLines:             walkData.TotalLines,
+		ValidFiles:             walkData.ValidFiles,
 	}
 }

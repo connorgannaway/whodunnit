@@ -23,25 +23,38 @@ import (
 
 // Root application model. Contains all other models and some global state.
 type rootModel struct {
+	errors []error
+
+	// Models
 	header       headerModel
 	lineContent  lineContentModel
 	blameContent blameContentModel
 	footer       footerModel
-	errors       []error
 
+	// Data
+	fileCounts                 map[string]count.FileCount
+	validFiles                 []count.ValidFile
+	fileCountsAlphabeticalKeys []string
+	fileCountsSortedKeys       []string
+	totalLines                 int
+
+	blameCounts map[string]*count.BlameCount
+	blameKeys   []string
+
+	// Window and content size variables
 	windowWidth   int
 	leftWidth     int
 	rightWidth    int
 	contentHeight int
 	headerHeight  int
 
-	activePanel int
-
+	// Configuration
+	activePanel      int
 	sortBy           SortType
 	fileIgnoreConfig count.IgnoreConfig
 }
 
-func NewRootModel(rootfs string, ign *count.IgnoreConfig) rootModel {
+func NewRootModel(rootfs string, ign *count.IgnoreConfig) *rootModel {
 	var ignoreCfg count.IgnoreConfig
 	if ign == nil {
 		ignoreCfg = count.DefaultIgnoreConfig()
@@ -49,16 +62,41 @@ func NewRootModel(rootfs string, ign *count.IgnoreConfig) rootModel {
 		ignoreCfg = *ign
 	}
 
-	return rootModel{
-		header:           newHeaderModel(rootfs),
-		lineContent:      newLineContentModel(),
-		blameContent:     newBlameContentModel(),
-		footer:           newFooterModel(),
-		errors:           []error{},
-		activePanel:      0,
-		sortBy:           SortTypeAlphabetical,
-		fileIgnoreConfig: ignoreCfg,
-	}
+	r := &rootModel{}
+
+	// configuration + state
+	r.errors = []error{}
+	r.activePanel = 0
+	r.sortBy = SortTypeAlphabetical
+	r.fileIgnoreConfig = ignoreCfg
+
+	// data
+	r.fileCounts = make(map[string]count.FileCount)
+	r.validFiles = []count.ValidFile{}
+	r.fileCountsAlphabeticalKeys = []string{}
+	r.fileCountsSortedKeys = []string{}
+	r.totalLines = 0
+
+	r.blameCounts = make(map[string]*count.BlameCount)
+	r.blameKeys = []string{}
+
+	// submodels
+	r.header = newHeaderModel(rootfs)
+	r.footer = newFooterModel()
+	r.lineContent = newLineContentModel(
+		&r.fileCounts,
+		&r.fileCountsAlphabeticalKeys,
+		&r.fileCountsSortedKeys,
+		&r.totalLines,
+		&r.sortBy,
+	)
+	r.blameContent = newBlameContentModel(
+		&r.blameCounts,
+		&r.blameKeys,
+		&r.sortBy,
+	)
+
+	return r
 }
 
 // Wait for and return the next message from BlameStatusChannel.
@@ -70,21 +108,34 @@ func subscribeBlameStatus() tea.Cmd {
 }
 
 // Ran on initialization. Kick off the file walk
-func (r rootModel) Init() tea.Cmd {
+func (r *rootModel) Init() tea.Cmd {
 	return func() tea.Msg {
 		return count.Walk(r.header.path, r.fileIgnoreConfig)
 	}
 }
 
-func (r rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (r *rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	// Handle messages based on message type
 	switch m := msg.(type) {
 	case count.WalkDoneMsg:
-		cmds = append(cmds, subscribeBlameStatus(), count.StartBlameRepo(r.header.path))
+		// Update data
+		r.fileCounts = m.Counts
+		r.fileCountsAlphabeticalKeys = m.SortedAlphabeticalKeys
+		r.fileCountsSortedKeys = m.SortedCountsKeys
+		r.validFiles = m.ValidFiles
+		r.totalLines = m.TotalLines
+
+		// Subscribe to the status and kick off the blame process
+		cmds = append(cmds, subscribeBlameStatus(), count.StartBlameRepo(r.header.path, r.validFiles))
 	case count.WalkErrorMsg:
 		r.errors = append(r.errors, m.Err)
+	case count.BlameDoneMsg:
+		// Update data
+		r.blameCounts = m.Counts
+		r.blameKeys = m.SortedKeys
+
 	case count.BlameStatusMsg:
 		// Must resubscribe to the channel to get the next message
 		cmds = append(cmds, subscribeBlameStatus())
@@ -117,11 +168,9 @@ func (r rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 
 			// Update the sort type for both content models and re-render
-			r.lineContent.sortBy = r.sortBy
 			if r.lineContent.ready {
 				r.lineContent.viewport.SetContent(r.lineContent.generateContent())
 			}
-			r.blameContent.sortBy = r.sortBy
 			if r.blameContent.ready {
 				r.blameContent.viewport.SetContent(r.blameContent.generateContent())
 			}
@@ -161,7 +210,7 @@ func (r rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return r, tea.Batch(cmds...)
 }
 
-func (r rootModel) View() string {
+func (r *rootModel) View() string {
 	// show error list if there are any
 	if len(r.errors) > 0 {
 		return fmt.Sprintf("Errors: %v", r.errors)

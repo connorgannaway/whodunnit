@@ -99,7 +99,6 @@ func (h *headerModel) Update(msg tea.Msg, width int) tea.Cmd {
 	return tea.Batch(cmds...)
 }
 
-
 func (h headerModel) View() string {
 	// Create git information string
 	gitString := ""

@@ -21,19 +21,26 @@ import (
 )
 
 type blameContentModel struct {
-	counts               map[string]*count.BlameCount
-	sortedCountsKeyArray []string
+	counts               *map[string]*count.BlameCount
+	sortedCountsKeyArray *[]string
 	isGitRepo            bool
-	sortBy               SortType
+	sortBy               *SortType
 
 	viewport viewport.Model
 	ready    bool
 }
 
-func newBlameContentModel() blameContentModel {
+func newBlameContentModel(
+	counts *map[string]*count.BlameCount,
+	keys *[]string,
+	sortBy *SortType,
+) blameContentModel {
 	return blameContentModel{
-		isGitRepo: true,
-		sortBy:    SortTypeAlphabetical,
+		counts:               counts,
+		sortedCountsKeyArray: keys,
+		isGitRepo:            true,
+		sortBy:               sortBy,
+		ready:                false,
 	}
 }
 
@@ -58,23 +65,21 @@ func (c blameContentModel) generateContent() string {
 		authorColWidth = FILETYPE_WIDTH
 	}
 
-	if len(c.sortedCountsKeyArray) > 0 {
-
-		// Loop through the map by the sorted counts keys 
+	if len(*c.counts) > 0 && len(*c.sortedCountsKeyArray) > 0 {
+		// Loop through the map by the sorted counts keys
 		// to display authors in order of total lines
-		for _, k := range c.sortedCountsKeyArray {
-
+		for _, k := range *c.sortedCountsKeyArray {
 			// generate author's name and total lines
 			authorStr := lipgloss.NewStyle().
 				Align(lipgloss.Left).
 				Bold(true).
 				Width(authorColWidth).
-				Render(truncateString(c.counts[k].Author, authorColWidth))
+				Render(truncateString((*c.counts)[k].Author, authorColWidth))
 			totalStr := lipgloss.NewStyle().
 				Align(lipgloss.Right).
 				Bold(true).
 				Width(COUNT_WIDTH).
-				Render(strconv.Itoa(c.counts[k].Count))
+				Render(strconv.Itoa((*c.counts)[k].Count))
 			line := authorStr + totalStr
 			if vpWidth > CONTENT_TOTAL_WIDTH {
 				line = lipgloss.PlaceHorizontal(vpWidth, lipgloss.Center, line)
@@ -83,15 +88,15 @@ func (c blameContentModel) generateContent() string {
 
 			// select sort keys to use based on sort type
 			var LinesByTypeKeys []string
-			if c.sortBy == SortTypeAlphabetical {
-				LinesByTypeKeys = c.counts[k].SortedAlphabeticalKeys
+			if *c.sortBy == SortTypeAlphabetical {
+				LinesByTypeKeys = (*c.counts)[k].SortedAlphabeticalKeys
 			} else {
-				LinesByTypeKeys = c.counts[k].SortedCountsKeys
+				LinesByTypeKeys = (*c.counts)[k].SortedCountsKeys
 			}
 
 			// Loop through an author's filetypes and counts
 			for _, j := range LinesByTypeKeys {
-				f := c.counts[k].LinesByType[j]
+				f := (*c.counts)[k].LinesByType[j]
 
 				// recalculate width with indentation
 				var filetypeColWidth int
@@ -139,8 +144,6 @@ func (c *blameContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 
 	switch m := msg.(type) {
 	case count.BlameDoneMsg:
-		c.counts = m.Counts
-		c.sortedCountsKeyArray = m.SortedKeys
 		if c.ready {
 			c.viewport.SetContent(c.generateContent())
 		}
@@ -165,7 +168,7 @@ func (c *blameContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 	var vpCmd tea.Cmd
 	c.viewport, vpCmd = c.viewport.Update(msg)
 	cmds = append(cmds, vpCmd)
-	
+
 	return tea.Batch(cmds...)
 }
 

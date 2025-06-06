@@ -21,27 +21,36 @@ import (
 )
 
 type lineContentModel struct {
-	counts                 map[string]count.FileCount
-	sortedAlphabeticalKeys []string
-	sortedCountsKeys       []string
-	sortBy                 SortType
-	totalLines             int
+	counts                 *map[string]count.FileCount
+	sortedAlphabeticalKeys *[]string
+	sortedCountsKeys       *[]string
+	totalLines             *int
+
+	sortBy *SortType
 
 	viewport viewport.Model
 	ready    bool
 }
 
-func newLineContentModel() lineContentModel {
+func newLineContentModel(
+	counts *map[string]count.FileCount,
+	sortedAlphabeticalKeys *[]string,
+	sortedCountsKeys *[]string,
+	totalLines *int,
+	sortBy *SortType,
+) lineContentModel {
 	return lineContentModel{
-		counts:                 make(map[string]count.FileCount),
-		sortedAlphabeticalKeys: []string{},
-		sortedCountsKeys:       []string{},
-		sortBy:                 SortTypeAlphabetical,
+		counts:                 counts,
+		sortedAlphabeticalKeys: sortedAlphabeticalKeys,
+		sortedCountsKeys:       sortedCountsKeys,
+		totalLines:             totalLines,
+		sortBy:                 sortBy,
+		ready:                  false,
 	}
 }
 
 func (c lineContentModel) GetSortType() SortType {
-	return c.sortBy
+	return *c.sortBy
 }
 
 func (c lineContentModel) generateContent() string {
@@ -75,53 +84,57 @@ func (c lineContentModel) generateContent() string {
 		Align(lipgloss.Right).
 		Width(COUNT_WIDTH).
 		Bold(true).
-		Render(strconv.Itoa(c.totalLines))
+		Render(strconv.Itoa(*c.totalLines))
 	line := totalLabel + totalCount
 	if vpWidth > CONTENT_TOTAL_WIDTH {
 		line = lipgloss.PlaceHorizontal(vpWidth, lipgloss.Center, line)
 	}
 	content += line + "\n"
 
-	// Set keys based on current sort type
-	var keys []string
-	if c.sortBy == SortTypeCount {
-		keys = c.sortedCountsKeys
+	if len(*c.counts) > 0 {
+		// Set keys based on current sort type
+		var keys []string
+		if *c.sortBy == SortTypeCount {
+			keys = *c.sortedCountsKeys
+		} else {
+			keys = *c.sortedAlphabeticalKeys
+		}
+	
+
+		// Iterate over every filetype, rendering the filetype and count
+		for _, k := range keys {
+			v := (*c.counts)[k]
+
+			colorCode := enry.GetColor(v.Filetype)
+			truncated := truncateString(v.Filetype, filetypeColWidth)
+			filetypeStr := lipgloss.NewStyle().
+				Foreground(lipgloss.Color(colorCode)).
+				Align(lipgloss.Left).
+				Width(filetypeColWidth).
+				Render(truncated)
+			countStr := lipgloss.NewStyle().
+				Align(lipgloss.Right).
+				Width(COUNT_WIDTH).
+				Render(strconv.Itoa(v.Count))
+			line = filetypeStr + countStr
+			if vpWidth > CONTENT_TOTAL_WIDTH {
+				line = lipgloss.PlaceHorizontal(vpWidth, lipgloss.Center, line)
+			}
+			content += line + "\n"
+		}
 	} else {
-		keys = c.sortedAlphabeticalKeys
+		// Show loading message when no data is available
+		content += lipgloss.PlaceHorizontal(vpWidth, lipgloss.Center, "Counting lines...") + "\n"
 	}
 
-	// Iterate over every filetype, rendering the filetype and count
-	for _, k := range keys {
-		v := c.counts[k]
-		colorCode := enry.GetColor(v.Filetype)
-		truncated := truncateString(v.Filetype, filetypeColWidth)
-		filetypeStr := lipgloss.NewStyle().
-			Foreground(lipgloss.Color(colorCode)).
-			Align(lipgloss.Left).
-			Width(filetypeColWidth).
-			Render(truncated)
-		countStr := lipgloss.NewStyle().
-			Align(lipgloss.Right).
-			Width(COUNT_WIDTH).
-			Render(strconv.Itoa(v.Count))
-		line = filetypeStr + countStr
-		if vpWidth > CONTENT_TOTAL_WIDTH {
-			line = lipgloss.PlaceHorizontal(vpWidth, lipgloss.Center, line)
-		}
-		content += line + "\n"
-	}
 	return content
 }
 
 func (c *lineContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 	var cmds []tea.Cmd
 
-	switch m := msg.(type) {
+	switch msg.(type) {
 	case count.WalkDoneMsg:
-		c.counts = m.Counts
-		c.sortedAlphabeticalKeys = m.SortedAlphabeticalKeys
-		c.sortedCountsKeys = m.SortedCountsKeys
-		c.totalLines = m.TotalLines
 		if c.ready {
 			c.viewport.SetContent(c.generateContent())
 		}

@@ -22,7 +22,7 @@ import (
 type BlameCount struct {
 	Author      string
 	Count       int
-	LinesByType map[string]*FileCount
+	LinesByType map[string]FileCount
 
 	SortedAlphabeticalKeys []string
 	SortedCountsKeys       []string
@@ -33,19 +33,13 @@ type BlameJob struct {
 	index int
 }
 
-
-var (
-	// Global blame state
-	BlameCounts        = make(map[string]*BlameCount)
-	blameCountsLocker  sync.Mutex
-	// Channel for sending messages to the TUI
-	BlameStatusChannel = make(chan tea.Msg)
-)
+// Channel for sending messages to the TUI
+var BlameStatusChannel = make(chan tea.Msg)
 
 // BlameRepo iterates over all valid files found duing the file walk
 // and blames each file in parallel. It updates the BlameCounts map
 // with the number of lines attributed to each author.
-func BlameRepo(rootFs string) error {
+func BlameRepo(rootFs string, Files []ValidFile, BlameCounts map[string]*BlameCount, blameCountsLocker *sync.Mutex) error {
 	numWorkers := runtime.NumCPU() / 2
 	if numWorkers < 1 {
 		numWorkers = 1
@@ -103,17 +97,19 @@ func BlameRepo(rootFs string) error {
 					if !ok {
 						bc = &BlameCount{
 							Author:      line.AuthorName,
-							LinesByType: make(map[string]*FileCount),
+							LinesByType: make(map[string]FileCount),
 						}
-						BlameCounts[line.AuthorName] = bc
 					}
-					if _, ok := bc.LinesByType[file.Filetype]; !ok {
-						bc.LinesByType[file.Filetype] = &FileCount{
+					fc, fok := bc.LinesByType[file.Filetype]
+					if !fok {
+						fc = FileCount{
 							Filetype: file.Filetype,
 						}
 					}
 					bc.Count++
-					bc.LinesByType[file.Filetype].Count++
+					fc.Count++
+					bc.LinesByType[file.Filetype] = fc
+					BlameCounts[line.AuthorName] = bc
 				}
 				blameCountsLocker.Unlock()
 			}
@@ -130,7 +126,7 @@ func BlameRepo(rootFs string) error {
 }
 
 // Bubble tea compatible command to start the blame process
-func StartBlameRepo(rootFs string) tea.Cmd {
+func StartBlameRepo(rootFs string, Files []ValidFile) tea.Cmd {
 	return func() tea.Msg {
 		//Catch errors before creating workers
 		repo, err := git.PlainOpen(rootFs)
@@ -146,8 +142,12 @@ func StartBlameRepo(rootFs string) tea.Cmd {
 			return BlameErrorMsg{Err: err}
 		}
 
+		// Blame state
+		var BlameCounts = make(map[string]*BlameCount)
+		var blameCountsLocker sync.Mutex
+
 		// Blame the repo
-		if err := BlameRepo(rootFs); err != nil {
+		if err := BlameRepo(rootFs, Files, BlameCounts, &blameCountsLocker); err != nil {
 			return BlameErrorMsg{Err: err}
 		}
 

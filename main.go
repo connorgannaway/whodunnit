@@ -20,7 +20,6 @@ import (
 	"github.com/connorgannaway/whodunnit/tui/JsonExport"
 )
 
-
 var Version = "dev"
 
 func init() {
@@ -28,7 +27,7 @@ func init() {
 
 	// Override the default usage function with a custom message
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "%s\n  %s [options] [repo]\n\n",BoldUnderline.Render("Usage:"), os.Args[0])
+		fmt.Fprintf(os.Stderr, "%s\n  %s [options] [repo]\n\n", BoldUnderline.Render("Usage:"), os.Args[0])
 
 		fmt.Fprintln(os.Stderr, BoldUnderline.Render("Options:"))
 		flag.PrintDefaults()
@@ -45,7 +44,6 @@ For more information, see https://github.com/connorgannaway/whodunnit.
 `, BoldUnderline.Render("Examples:"))
 	}
 }
-
 
 func main() {
 	// Define and parse command-line flags
@@ -95,9 +93,11 @@ func main() {
 		return
 	}
 
+	rootModel := tui.NewRootModel(rootfs, filetypeIgnoreConfig)
+
 	// Create TUI
 	program := tea.NewProgram(
-		tui.NewRootModel(rootfs, filetypeIgnoreConfig),
+		rootModel,
 		tea.WithAltScreen(),
 		tea.WithMouseCellMotion(),
 	)
