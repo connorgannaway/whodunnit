@@ -37,6 +37,4 @@ jobs:
           args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          HOMEBREW_TOKEN: ${{ secrets.HOMEBREW_TOKEN }}
-          FURY_TOKEN: ${{ secrets.FURY_PUSH_TOKEN }}
-          FURY_ACCOUNT: ${{ vars.FURY_ACCOUNT }}
+          REPO_PUBLISH_TOKEN: ${{ secrets.REPO_PUBLISH_TOKEN }}
