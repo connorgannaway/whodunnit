@@ -14,7 +14,7 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/connorgannaway/whodunnit/count"
+	"github.com/connorgannaway/whodunnit/pkg/services/git"
 )
 
 type control struct {
@@ -64,9 +64,9 @@ func (f *footerModel) Init() tea.Cmd {
 func (f *footerModel) Update(msg tea.Msg, width int) tea.Cmd {
 	var cmds []tea.Cmd
 	switch m := msg.(type) {
-	case count.BlameStatusMsg:
+	case git.StatusMessage:
 		f.status = fmt.Sprintf("Blaming (%d / %d): %s", m.CurrentFile, m.TotalFiles, m.Filepath)
-	case count.BlameDoneMsg:
+	case git.ResultMessage:
 		f.status = ""
 	case spinner.TickMsg:
 		var cmd tea.Cmd

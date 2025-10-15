@@ -17,13 +17,19 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/connorgannaway/whodunnit/count"
-	"github.com/go-git/go-git/v5"
+	"github.com/connorgannaway/whodunnit/pkg/models"
+	"github.com/connorgannaway/whodunnit/pkg/services/files"
+	"github.com/connorgannaway/whodunnit/pkg/services/git"
+	git_lib "github.com/go-git/go-git/v5"
 )
 
 // Root application model. Contains all other models and some global state.
 type rootModel struct {
 	errors []error
+
+	// Services
+	fileService *files.Service
+	gitService  *git.Service
 
 	// Models
 	header       headerModel
@@ -32,14 +38,7 @@ type rootModel struct {
 	footer       footerModel
 
 	// Data
-	fileCounts                 map[string]count.FileCount
-	validFiles                 []count.ValidFile
-	fileCountsAlphabeticalKeys []string
-	fileCountsSortedKeys       []string
-	totalLines                 int
-
-	blameCounts map[string]*count.BlameCount
-	blameKeys   []string
+	analysisResult *models.AnalysisResult
 
 	// Window and content size variables
 	windowWidth   int
@@ -49,69 +48,78 @@ type rootModel struct {
 	headerHeight  int
 
 	// Configuration
-	activePanel      int
-	sortBy           SortType
-	fileIgnoreConfig count.IgnoreConfig
+	activePanel   int
+	sortBy        SortType
+	fileFilter    *models.FileFilter
+	gitFilter     *models.GitFilter
+	statusChannel chan tea.Msg
 }
 
-func NewRootModel(rootfs string, ign *count.IgnoreConfig) *rootModel {
-	var ignoreCfg count.IgnoreConfig
-	if ign == nil {
-		ignoreCfg = count.DefaultIgnoreConfig()
-	} else {
-		ignoreCfg = *ign
+func NewRootModel(rootfs string, fileFilter *models.FileFilter, gitFilter *models.GitFilter) *rootModel {
+	// Set default file filter if none provided
+	if fileFilter == nil {
+		fileFilter = &models.FileFilter{
+			IgnoreDotFiles:       true,
+			IgnoreConfigFiles:    true,
+			IgnoreGeneratedFiles: true,
+			IgnoreVendorFiles:    true,
+		}
 	}
 
 	r := &rootModel{}
 
-	// configuration + state
+	// Initialize services
+	r.fileService = files.NewService(rootfs)
+	gitService, err := git.NewService(rootfs)
+	if err == nil {
+		r.gitService = gitService
+	}
+
+	// Configuration + state
 	r.errors = []error{}
 	r.activePanel = 0
 	r.sortBy = SortTypeAlphabetical
-	r.fileIgnoreConfig = ignoreCfg
+	r.fileFilter = fileFilter
+	r.gitFilter = gitFilter
+	r.statusChannel = make(chan tea.Msg, 100)
 
-	// data
-	r.fileCounts = make(map[string]count.FileCount)
-	r.validFiles = []count.ValidFile{}
-	r.fileCountsAlphabeticalKeys = []string{}
-	r.fileCountsSortedKeys = []string{}
-	r.totalLines = 0
+	// Initialize empty analysis result
+	r.analysisResult = &models.AnalysisResult{
+		FileCounts:   make(map[string]models.FileCount),
+		AuthorStats:  make(map[string]*models.AuthorStats),
+		ValidFiles:   []models.FileInfo{},
+		RepositoryPath: rootfs,
+	}
 
-	r.blameCounts = make(map[string]*count.BlameCount)
-	r.blameKeys = []string{}
-
-	// submodels
-	r.header = newHeaderModel(rootfs)
+	// Initialize submodels
+	r.header = newHeaderModel(rootfs, gitFilter)
 	r.footer = newFooterModel()
 	r.lineContent = newLineContentModel(
-		&r.fileCounts,
-		&r.fileCountsAlphabeticalKeys,
-		&r.fileCountsSortedKeys,
-		&r.totalLines,
+		&r.analysisResult.FileCounts,
+		&r.analysisResult.FileCountsAlphabeticalKeys,
+		&r.analysisResult.FileCountsSortedKeys,
+		&r.analysisResult.TotalLines,
 		&r.sortBy,
 	)
 	r.blameContent = newBlameContentModel(
-		&r.blameCounts,
-		&r.blameKeys,
+		&r.analysisResult.AuthorStats,
+		&r.analysisResult.AuthorKeys,
 		&r.sortBy,
 	)
 
 	return r
 }
 
-// Wait for and return the next message from BlameStatusChannel.
-// tea.Cmds run as a goroutine, so we can block here and wait for the next message.
-func subscribeBlameStatus() tea.Cmd {
+// Wait for and return the next message from the status channel.
+func (r *rootModel) subscribeStatus() tea.Cmd {
 	return func() tea.Msg {
-		return <-count.BlameStatusChannel
+		return <-r.statusChannel
 	}
 }
 
-// Ran on initialization. Kick off the file walk
+// Ran on initialization. Kick off the file analysis
 func (r *rootModel) Init() tea.Cmd {
-	return func() tea.Msg {
-		return count.Walk(r.header.path, r.fileIgnoreConfig)
-	}
+	return r.fileService.AnalyzeDirectory(r.fileFilter)
 }
 
 func (r *rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -119,28 +127,29 @@ func (r *rootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	// Handle messages based on message type
 	switch m := msg.(type) {
-	case count.WalkDoneMsg:
-		// Update data
-		r.fileCounts = m.Counts
-		r.fileCountsAlphabeticalKeys = m.SortedAlphabeticalKeys
-		r.fileCountsSortedKeys = m.SortedCountsKeys
-		r.validFiles = m.ValidFiles
-		r.totalLines = m.TotalLines
+	case files.AnalysisResult:
+		// Update file analysis data
+		r.analysisResult.FileCounts = m.FileCounts
+		r.analysisResult.FileCountsAlphabeticalKeys = m.FileCountsAlphabeticalKeys
+		r.analysisResult.FileCountsSortedKeys = m.FileCountsSortedKeys
+		r.analysisResult.ValidFiles = m.ValidFiles
+		r.analysisResult.TotalLines = m.TotalLines
 
-		// Subscribe to the status and kick off the blame process
-		cmds = append(cmds, subscribeBlameStatus(), count.StartBlameRepo(r.header.path, r.validFiles))
-	case count.WalkErrorMsg:
+		// Start git analysis if service is available
+		if r.gitService != nil {
+			cmds = append(cmds, r.subscribeStatus(), r.gitService.BlameFiles(m.ValidFiles, r.gitFilter, r.statusChannel))
+		}
+	case files.ErrorMessage:
 		r.errors = append(r.errors, m.Err)
-	case count.BlameDoneMsg:
-		// Update data
-		r.blameCounts = m.Counts
-		r.blameKeys = m.SortedKeys
-
-	case count.BlameStatusMsg:
-		// Must resubscribe to the channel to get the next message
-		cmds = append(cmds, subscribeBlameStatus())
-	case count.BlameErrorMsg:
-		if !errors.Is(m.Err, git.ErrRepositoryNotExists) {
+	case git.ResultMessage:
+		// Update git analysis data
+		r.analysisResult.AuthorStats = m.AuthorStats
+		r.analysisResult.AuthorKeys = m.SortedKeys
+	case git.StatusMessage:
+		// Git analysis status update - resubscribe for next message
+		cmds = append(cmds, r.subscribeStatus())
+	case git.ErrorMessage:
+		if !errors.Is(m.Err, git_lib.ErrRepositoryNotExists) {
 			r.errors = append(r.errors, m.Err)
 		}
 	case tea.KeyMsg:

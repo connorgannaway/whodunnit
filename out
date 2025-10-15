@@ -1,0 +1,1227 @@
+{
+  "metadata": {
+    "repository_path": "../openticket",
+    "analysis_date": "2025-08-15T20:04:00-05:00",
+    "total_lines": 16205,
+    "total_files": 158,
+    "filtered_lines": 16205
+  },
+  "file_types": [
+    {
+      "type": "TSX",
+      "line_count": 10083,
+      "percentage": 62.22153656278926
+    },
+    {
+      "type": "Go",
+      "line_count": 2621,
+      "percentage": 16.17402036408516
+    },
+    {
+      "type": "TypeScript",
+      "line_count": 1924,
+      "percentage": 11.87287874112928
+    },
+    {
+      "type": "Go Checksums",
+      "line_count": 532,
+      "percentage": 3.282937365010799
+    },
+    {
+      "type": "SQL",
+      "line_count": 375,
+      "percentage": 2.3141005862388155
+    },
+    {
+      "type": "JavaScript",
+      "line_count": 313,
+      "percentage": 1.931502622647331
+    },
+    {
+      "type": "Go Module",
+      "line_count": 97,
+      "percentage": 0.5985806849737736
+    },
+    {
+      "type": "Markdown",
+      "line_count": 96,
+      "percentage": 0.5924097500771367
+    },
+    {
+      "type": "Jest Snapshot",
+      "line_count": 46,
+      "percentage": 0.2838630052452946
+    },
+    {
+      "type": "Shell",
+      "line_count": 44,
+      "percentage": 0.271521135452021
+    },
+    {
+      "type": "HTML",
+      "line_count": 30,
+      "percentage": 0.18512804689910523
+    },
+    {
+      "type": "Dockerfile",
+      "line_count": 24,
+      "percentage": 0.14810243751928417
+    },
+    {
+      "type": "CSS",
+      "line_count": 13,
+      "percentage": 0.08022215365627892
+    },
+    {
+      "type": "Go Workspace",
+      "line_count": 7,
+      "percentage": 0.04319654427645788
+    }
+  ],
+  "authors": [
+    {
+      "name": "Connor Gannaway",
+      "total_lines": 8336,
+      "file_types": [
+        {
+          "type": "TSX",
+          "lines": 4166
+        },
+        {
+          "type": "Go",
+          "lines": 1807
+        },
+        {
+          "type": "TypeScript",
+          "lines": 1222
+        },
+        {
+          "type": "Go Checksums",
+          "lines": 430
+        },
+        {
+          "type": "SQL",
+          "lines": 267
+        },
+        {
+          "type": "JavaScript",
+          "lines": 198
+        },
+        {
+          "type": "Go Module",
+          "lines": 61
+        },
+        {
+          "type": "Shell",
+          "lines": 44
+        },
+        {
+          "type": "Jest Snapshot",
+          "lines": 44
+        },
+        {
+          "type": "HTML",
+          "lines": 30
+        },
+        {
+          "type": "Dockerfile",
+          "lines": 24
+        },
+        {
+          "type": "Markdown",
+          "lines": 23
+        },
+        {
+          "type": "CSS",
+          "lines": 13
+        },
+        {
+          "type": "Go Workspace",
+          "lines": 7
+        }
+      ]
+    },
+    {
+      "name": "Caleb Kornegay",
+      "total_lines": 4466,
+      "file_types": [
+        {
+          "type": "TSX",
+          "lines": 3214
+        },
+        {
+          "type": "Go",
+          "lines": 787
+        },
+        {
+          "type": "JavaScript",
+          "lines": 115
+        },
+        {
+          "type": "TypeScript",
+          "lines": 110
+        },
+        {
+          "type": "SQL",
+          "lines": 104
+        },
+        {
+          "type": "Markdown",
+          "lines": 72
+        },
+        {
+          "type": "Go Checksums",
+          "lines": 44
+        },
+        {
+          "type": "Go Module",
+          "lines": 20
+        }
+      ]
+    },
+    {
+      "name": "Christopher Canaday",
+      "total_lines": 2202,
+      "file_types": [
+        {
+          "type": "TSX",
+          "lines": 1703
+        },
+        {
+          "type": "TypeScript",
+          "lines": 492
+        },
+        {
+          "type": "Go",
+          "lines": 3
+        },
+        {
+          "type": "Go Checksums",
+          "lines": 2
+        },
+        {
+          "type": "Go Module",
+          "lines": 1
+        },
+        {
+          "type": "Markdown",
+          "lines": 1
+        }
+      ]
+    },
+    {
+      "name": "aglindstrom",
+      "total_lines": 527,
+      "file_types": [
+        {
+          "type": "TSX",
+          "lines": 525
+        },
+        {
+          "type": "Jest Snapshot",
+          "lines": 2
+        }
+      ]
+    },
+    {
+      "name": "aaronpig9",
+      "total_lines": 408,
+      "file_types": [
+        {
+          "type": "TSX",
+          "lines": 280
+        },
+        {
+          "type": "TypeScript",
+          "lines": 100
+        },
+        {
+          "type": "Go",
+          "lines": 24
+        },
+        {
+          "type": "SQL",
+          "lines": 4
+        }
+      ]
+    },
+    {
+      "name": "CalebKornegay",
+      "total_lines": 260,
+      "file_types": [
+        {
+          "type": "TSX",
+          "lines": 189
+        },
+        {
+          "type": "Go Checksums",
+          "lines": 56
+        },
+        {
+          "type": "Go Module",
+          "lines": 15
+        }
+      ]
+    },
+    {
+      "name": "Andrew",
+      "total_lines": 6,
+      "file_types": [
+        {
+          "type": "TSX",
+          "lines": 6
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "../openticket/README.md",
+      "type": "Markdown",
+      "line_count": 5,
+      "size": 116
+    },
+    {
+      "path": "../openticket/apps/api/auth.go",
+      "type": "Go",
+      "line_count": 84,
+      "size": 2010
+    },
+    {
+      "path": "../openticket/apps/api/dbtest.go",
+      "type": "Go",
+      "line_count": 95,
+      "size": 2071
+    },
+    {
+      "path": "../openticket/apps/api/go.mod",
+      "type": "Go Module",
+      "line_count": 65,
+      "size": 3202
+    },
+    {
+      "path": "../openticket/apps/api/go.sum",
+      "type": "Go Checksums",
+      "line_count": 364,
+      "size": 34890
+    },
+    {
+      "path": "../openticket/apps/api/oklink.go",
+      "type": "Go",
+      "line_count": 122,
+      "size": 3512
+    },
+    {
+      "path": "../openticket/apps/api/options.go",
+      "type": "Go",
+      "line_count": 25,
+      "size": 579
+    },
+    {
+      "path": "../openticket/apps/api/shared/APIResponseHelpers.go",
+      "type": "Go",
+      "line_count": 22,
+      "size": 712
+    },
+    {
+      "path": "../openticket/apps/api/shared/ResponseHeaders.go",
+      "type": "Go",
+      "line_count": 44,
+      "size": 1157
+    },
+    {
+      "path": "../openticket/apps/api/shared/TokenHelpers.go",
+      "type": "Go",
+      "line_count": 67,
+      "size": 1823
+    },
+    {
+      "path": "../openticket/apps/api/user_events.go",
+      "type": "Go",
+      "line_count": 186,
+      "size": 5137
+    },
+    {
+      "path": "../openticket/apps/api/user_zips.go",
+      "type": "Go",
+      "line_count": 109,
+      "size": 3382
+    },
+    {
+      "path": "../openticket/apps/api/vendor_events.go",
+      "type": "Go",
+      "line_count": 428,
+      "size": 13638
+    },
+    {
+      "path": "../openticket/apps/api/vendor_photos.go",
+      "type": "Go",
+      "line_count": 265,
+      "size": 8859
+    },
+    {
+      "path": "../openticket/apps/api/vendor_tickets.go",
+      "type": "Go",
+      "line_count": 113,
+      "size": 3458
+    },
+    {
+      "path": "../openticket/apps/api/vendor_tickets_create.go",
+      "type": "Go",
+      "line_count": 131,
+      "size": 3864
+    },
+    {
+      "path": "../openticket/apps/api/vendor_venues.go",
+      "type": "Go",
+      "line_count": 354,
+      "size": 11677
+    },
+    {
+      "path": "../openticket/apps/api/vendorid.go",
+      "type": "Go",
+      "line_count": 201,
+      "size": 6542
+    },
+    {
+      "path": "../openticket/apps/eventhandlers/PhotoUploadEvent.go",
+      "type": "Go",
+      "line_count": 145,
+      "size": 3574
+    },
+    {
+      "path": "../openticket/apps/eventhandlers/TicketCreationEvent.go",
+      "type": "Go",
+      "line_count": 112,
+      "size": 2806
+    },
+    {
+      "path": "../openticket/apps/eventhandlers/go.mod",
+      "type": "Go Module",
+      "line_count": 3,
+      "size": 35
+    },
+    {
+      "path": "../openticket/apps/listener/Dockerfile",
+      "type": "Dockerfile",
+      "line_count": 24,
+      "size": 703
+    },
+    {
+      "path": "../openticket/apps/listener/eslint.config.cjs",
+      "type": "JavaScript",
+      "line_count": 3,
+      "size": 89
+    },
+    {
+      "path": "../openticket/apps/listener/jest.config.ts",
+      "type": "TypeScript",
+      "line_count": 13,
+      "size": 305
+    },
+    {
+      "path": "../openticket/apps/listener/src/main.ts",
+      "type": "TypeScript",
+      "line_count": 131,
+      "size": 4123
+    },
+    {
+      "path": "../openticket/apps/usermobile/README.md",
+      "type": "Markdown",
+      "line_count": 35,
+      "size": 1798
+    },
+    {
+      "path": "../openticket/apps/usermobile/components/DynamicSetup.tsx",
+      "type": "TSX",
+      "line_count": 20,
+      "size": 718
+    },
+    {
+      "path": "../openticket/apps/usermobile/components/EventView.tsx",
+      "type": "TSX",
+      "line_count": 767,
+      "size": 19388
+    },
+    {
+      "path": "../openticket/apps/usermobile/components/EventViewHeader.tsx",
+      "type": "TSX",
+      "line_count": 104,
+      "size": 2215
+    },
+    {
+      "path": "../openticket/apps/usermobile/components/Navigation.tsx",
+      "type": "TSX",
+      "line_count": 166,
+      "size": 4027
+    },
+    {
+      "path": "../openticket/apps/usermobile/components/QRCamera.tsx",
+      "type": "TSX",
+      "line_count": 50,
+      "size": 1446
+    },
+    {
+      "path": "../openticket/apps/usermobile/components/TicketListing.tsx",
+      "type": "TSX",
+      "line_count": 370,
+      "size": 9865
+    },
+    {
+      "path": "../openticket/apps/usermobile/components/TicketTransfer.tsx",
+      "type": "TSX",
+      "line_count": 171,
+      "size": 4149
+    },
+    {
+      "path": "../openticket/apps/usermobile/components/TransferStack.tsx",
+      "type": "TSX",
+      "line_count": 21,
+      "size": 594
+    },
+    {
+      "path": "../openticket/apps/usermobile/constants/colors.ts",
+      "type": "TypeScript",
+      "line_count": 9,
+      "size": 357
+    },
+    {
+      "path": "../openticket/apps/usermobile/index.js",
+      "type": "JavaScript",
+      "line_count": 8,
+      "size": 337
+    },
+    {
+      "path": "../openticket/apps/usermobile/metro.config.js",
+      "type": "JavaScript",
+      "line_count": 33,
+      "size": 1075
+    },
+    {
+      "path": "../openticket/apps/usermobile/src/app/App.spec.tsx",
+      "type": "TSX",
+      "line_count": 8,
+      "size": 256
+    },
+    {
+      "path": "../openticket/apps/usermobile/src/app/App.tsx",
+      "type": "TSX",
+      "line_count": 115,
+      "size": 2919
+    },
+    {
+      "path": "../openticket/apps/usermobile/src/global.js",
+      "type": "JavaScript",
+      "line_count": 3,
+      "size": 228
+    },
+    {
+      "path": "../openticket/apps/userweb/eslint.config.js",
+      "type": "JavaScript",
+      "line_count": 12,
+      "size": 271
+    },
+    {
+      "path": "../openticket/apps/userweb/jest.config.ts",
+      "type": "TypeScript",
+      "line_count": 10,
+      "size": 333
+    },
+    {
+      "path": "../openticket/apps/userweb/src/App.tsx",
+      "type": "TSX",
+      "line_count": 38,
+      "size": 847
+    },
+    {
+      "path": "../openticket/apps/userweb/src/base.css",
+      "type": "CSS",
+      "line_count": 1,
+      "size": 39
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/BuyTicketsModal.tsx",
+      "type": "TSX",
+      "line_count": 153,
+      "size": 4160
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/EventCard.tsx",
+      "type": "TSX",
+      "line_count": 104,
+      "size": 2424
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/EventDetailsHeader.tsx",
+      "type": "TSX",
+      "line_count": 69,
+      "size": 1939
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/EventDetailsMap.tsx",
+      "type": "TSX",
+      "line_count": 91,
+      "size": 2444
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/EventRow.tsx",
+      "type": "TSX",
+      "line_count": 116,
+      "size": 2788
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/FullscreenLoading.tsx",
+      "type": "TSX",
+      "line_count": 59,
+      "size": 1491
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/ListOfNFTsForEvent.tsx",
+      "type": "TSX",
+      "line_count": 126,
+      "size": 3130
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/Navigation.tsx",
+      "type": "TSX",
+      "line_count": 124,
+      "size": 3421
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/TicketCard.tsx",
+      "type": "TSX",
+      "line_count": 201,
+      "size": 5566
+    },
+    {
+      "path": "../openticket/apps/userweb/src/components/TransferTicketsModal.tsx",
+      "type": "TSX",
+      "line_count": 159,
+      "size": 4411
+    },
+    {
+      "path": "../openticket/apps/userweb/src/entry.tsx",
+      "type": "TSX",
+      "line_count": 34,
+      "size": 811
+    },
+    {
+      "path": "../openticket/apps/userweb/src/index.html",
+      "type": "HTML",
+      "line_count": 17,
+      "size": 443
+    },
+    {
+      "path": "../openticket/apps/userweb/src/router.tsx",
+      "type": "TSX",
+      "line_count": 86,
+      "size": 2299
+    },
+    {
+      "path": "../openticket/apps/userweb/src/views/EventDetailsPage.tsx",
+      "type": "TSX",
+      "line_count": 259,
+      "size": 6588
+    },
+    {
+      "path": "../openticket/apps/userweb/src/views/EventSearchPage.tsx",
+      "type": "TSX",
+      "line_count": 226,
+      "size": 5808
+    },
+    {
+      "path": "../openticket/apps/userweb/src/views/Home.tsx",
+      "type": "TSX",
+      "line_count": 80,
+      "size": 1959
+    },
+    {
+      "path": "../openticket/apps/userweb/src/views/Profile.tsx",
+      "type": "TSX",
+      "line_count": 963,
+      "size": 24965
+    },
+    {
+      "path": "../openticket/apps/userweb/src/views/PurchaseUserTicket.tsx",
+      "type": "TSX",
+      "line_count": 77,
+      "size": 2032
+    },
+    {
+      "path": "../openticket/apps/userweb/webpack.config.js",
+      "type": "JavaScript",
+      "line_count": 37,
+      "size": 1024
+    },
+    {
+      "path": "../openticket/apps/vendormobile/README.md",
+      "type": "Markdown",
+      "line_count": 35,
+      "size": 1806
+    },
+    {
+      "path": "../openticket/apps/vendormobile/index.js",
+      "type": "JavaScript",
+      "line_count": 8,
+      "size": 337
+    },
+    {
+      "path": "../openticket/apps/vendormobile/metro.config.js",
+      "type": "JavaScript",
+      "line_count": 33,
+      "size": 1062
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/app/App.spec.tsx",
+      "type": "TSX",
+      "line_count": 8,
+      "size": 256
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/app/App.tsx",
+      "type": "TSX",
+      "line_count": 235,
+      "size": 5826
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/constants/colors.ts",
+      "type": "TypeScript",
+      "line_count": 8,
+      "size": 325
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/global.js",
+      "type": "JavaScript",
+      "line_count": 3,
+      "size": 228
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/hooks/DynamicSetup.tsx",
+      "type": "TSX",
+      "line_count": 20,
+      "size": 720
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/screens/EventDetails.tsx",
+      "type": "TSX",
+      "line_count": 392,
+      "size": 9727
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/screens/Events.tsx",
+      "type": "TSX",
+      "line_count": 271,
+      "size": 7043
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/screens/Home.tsx",
+      "type": "TSX",
+      "line_count": 278,
+      "size": 7195
+    },
+    {
+      "path": "../openticket/apps/vendormobile/src/screens/QRCamera.tsx",
+      "type": "TSX",
+      "line_count": 50,
+      "size": 1434
+    },
+    {
+      "path": "../openticket/apps/vendorweb/eslint.config.js",
+      "type": "JavaScript",
+      "line_count": 12,
+      "size": 271
+    },
+    {
+      "path": "../openticket/apps/vendorweb/jest.config.ts",
+      "type": "TypeScript",
+      "line_count": 10,
+      "size": 337
+    },
+    {
+      "path": "../openticket/apps/vendorweb/postcss.config.cjs",
+      "type": "JavaScript",
+      "line_count": 5,
+      "size": 94
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/base.css",
+      "type": "CSS",
+      "line_count": 12,
+      "size": 194
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/components/AddEventModal.tsx",
+      "type": "TSX",
+      "line_count": 318,
+      "size": 7332
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/components/AddVenueModal.tsx",
+      "type": "TSX",
+      "line_count": 242,
+      "size": 5664
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/components/EditEventModal.tsx",
+      "type": "TSX",
+      "line_count": 165,
+      "size": 3935
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/components/EditVenueModal.tsx",
+      "type": "TSX",
+      "line_count": 229,
+      "size": 5346
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/components/ListOfNFTsForEvent.tsx",
+      "type": "TSX",
+      "line_count": 95,
+      "size": 2332
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/components/MintTicketsModal.tsx",
+      "type": "TSX",
+      "line_count": 143,
+      "size": 3859
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/components/Navigation.tsx",
+      "type": "TSX",
+      "line_count": 62,
+      "size": 1585
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/components/VendorTable.tsx",
+      "type": "TSX",
+      "line_count": 102,
+      "size": 2158
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/entry.tsx",
+      "type": "TSX",
+      "line_count": 34,
+      "size": 809
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/index.html",
+      "type": "HTML",
+      "line_count": 13,
+      "size": 360
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/router.tsx",
+      "type": "TSX",
+      "line_count": 82,
+      "size": 2262
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/routes/AppLayout.tsx",
+      "type": "TSX",
+      "line_count": 41,
+      "size": 945
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/routes/ConditionalRoot.tsx",
+      "type": "TSX",
+      "line_count": 199,
+      "size": 4662
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/routes/ProtectedRoute.tsx",
+      "type": "TSX",
+      "line_count": 8,
+      "size": 243
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/views/Details.tsx",
+      "type": "TSX",
+      "line_count": 507,
+      "size": 12848
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/views/Home.tsx",
+      "type": "TSX",
+      "line_count": 319,
+      "size": 8229
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/views/Login.tsx",
+      "type": "TSX",
+      "line_count": 59,
+      "size": 1049
+    },
+    {
+      "path": "../openticket/apps/vendorweb/src/views/Profile.tsx",
+      "type": "TSX",
+      "line_count": 551,
+      "size": 13506
+    },
+    {
+      "path": "../openticket/apps/vendorweb/webpack.config.js",
+      "type": "JavaScript",
+      "line_count": 37,
+      "size": 1026
+    },
+    {
+      "path": "../openticket/eslint.config.js",
+      "type": "JavaScript",
+      "line_count": 35,
+      "size": 775
+    },
+    {
+      "path": "../openticket/go.work",
+      "type": "Go Workspace",
+      "line_count": 7,
+      "size": 73
+    },
+    {
+      "path": "../openticket/go.work.sum",
+      "type": "Go Checksums",
+      "line_count": 110,
+      "size": 10628
+    },
+    {
+      "path": "../openticket/infra/bin/infra.ts",
+      "type": "TypeScript",
+      "line_count": 93,
+      "size": 2410
+    },
+    {
+      "path": "../openticket/infra/lib/Constants.ts",
+      "type": "TypeScript",
+      "line_count": 16,
+      "size": 865
+    },
+    {
+      "path": "../openticket/infra/lib/api-stack.ts",
+      "type": "TypeScript",
+      "line_count": 495,
+      "size": 11745
+    },
+    {
+      "path": "../openticket/infra/lib/deployment-service.ts",
+      "type": "TypeScript",
+      "line_count": 93,
+      "size": 2760
+    },
+    {
+      "path": "../openticket/infra/lib/eventhandler-stack.ts",
+      "type": "TypeScript",
+      "line_count": 194,
+      "size": 4620
+    },
+    {
+      "path": "../openticket/infra/lib/listener-stack.ts",
+      "type": "TypeScript",
+      "line_count": 76,
+      "size": 2146
+    },
+    {
+      "path": "../openticket/infra/lib/userweb-stack.ts",
+      "type": "TypeScript",
+      "line_count": 27,
+      "size": 655
+    },
+    {
+      "path": "../openticket/infra/lib/vendorweb-stack.ts",
+      "type": "TypeScript",
+      "line_count": 26,
+      "size": 608
+    },
+    {
+      "path": "../openticket/jest.config.ts",
+      "type": "TypeScript",
+      "line_count": 6,
+      "size": 181
+    },
+    {
+      "path": "../openticket/jest.env.ts",
+      "type": "TypeScript",
+      "line_count": 1,
+      "size": 47
+    },
+    {
+      "path": "../openticket/jest.preset.js",
+      "type": "JavaScript",
+      "line_count": 3,
+      "size": 88
+    },
+    {
+      "path": "../openticket/packages/blockchain/README.md",
+      "type": "Markdown",
+      "line_count": 7,
+      "size": 174
+    },
+    {
+      "path": "../openticket/packages/blockchain/eslint.config.cjs",
+      "type": "JavaScript",
+      "line_count": 3,
+      "size": 89
+    },
+    {
+      "path": "../openticket/packages/blockchain/jest.config.ts",
+      "type": "TypeScript",
+      "line_count": 13,
+      "size": 313
+    },
+    {
+      "path": "../openticket/packages/blockchain/src/index.ts",
+      "type": "TypeScript",
+      "line_count": 1,
+      "size": 34
+    },
+    {
+      "path": "../openticket/packages/blockchain/src/lib/blockchain.ts",
+      "type": "TypeScript",
+      "line_count": 506,
+      "size": 11572
+    },
+    {
+      "path": "../openticket/packages/gohelpers/go.mod",
+      "type": "Go Module",
+      "line_count": 29,
+      "size": 1244
+    },
+    {
+      "path": "../openticket/packages/gohelpers/go.sum",
+      "type": "Go Checksums",
+      "line_count": 58,
+      "size": 5539
+    },
+    {
+      "path": "../openticket/packages/gohelpers/packages/database/Database.go",
+      "type": "Go",
+      "line_count": 53,
+      "size": 1031
+    },
+    {
+      "path": "../openticket/packages/gohelpers/packages/database/GetDBCredentials.go",
+      "type": "Go",
+      "line_count": 65,
+      "size": 1579
+    },
+    {
+      "path": "../openticket/packages/gohelpers/packages/query.sql",
+      "type": "SQL",
+      "line_count": 280,
+      "size": 6742
+    },
+    {
+      "path": "../openticket/packages/gohelpers/packages/schema.sql",
+      "type": "SQL",
+      "line_count": 95,
+      "size": 2857
+    },
+    {
+      "path": "../openticket/packages/types/README.md",
+      "type": "Markdown",
+      "line_count": 7,
+      "size": 164
+    },
+    {
+      "path": "../openticket/packages/types/eslint.config.js",
+      "type": "JavaScript",
+      "line_count": 12,
+      "size": 271
+    },
+    {
+      "path": "../openticket/packages/types/jest.config.ts",
+      "type": "TypeScript",
+      "line_count": 10,
+      "size": 333
+    },
+    {
+      "path": "../openticket/packages/types/src/index.ts",
+      "type": "TypeScript",
+      "line_count": 1,
+      "size": 29
+    },
+    {
+      "path": "../openticket/packages/types/src/lib/types.ts",
+      "type": "TypeScript",
+      "line_count": 163,
+      "size": 2665
+    },
+    {
+      "path": "../openticket/packages/ui/README.md",
+      "type": "Markdown",
+      "line_count": 7,
+      "size": 158
+    },
+    {
+      "path": "../openticket/packages/ui/eslint.config.js",
+      "type": "JavaScript",
+      "line_count": 12,
+      "size": 271
+    },
+    {
+      "path": "../openticket/packages/ui/jest.config.ts",
+      "type": "TypeScript",
+      "line_count": 10,
+      "size": 327
+    },
+    {
+      "path": "../openticket/packages/ui/src/index.ts",
+      "type": "TypeScript",
+      "line_count": 8,
+      "size": 286
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/BaseModalForm.spec.tsx",
+      "type": "TSX",
+      "line_count": 82,
+      "size": 1984
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/BaseModalForm.tsx",
+      "type": "TSX",
+      "line_count": 56,
+      "size": 1286
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/Dropdown.spec.tsx",
+      "type": "TSX",
+      "line_count": 131,
+      "size": 4081
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/Dropdown.tsx",
+      "type": "TSX",
+      "line_count": 185,
+      "size": 4039
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/FullscreenLoadingMessage.tsx",
+      "type": "TSX",
+      "line_count": 59,
+      "size": 1193
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/SuccessAlert.tsx",
+      "type": "TSX",
+      "line_count": 17,
+      "size": 391
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/ViewingOnMobile.tsx",
+      "type": "TSX",
+      "line_count": 42,
+      "size": 780
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/error/ErrorPage.spec.tsx",
+      "type": "TSX",
+      "line_count": 63,
+      "size": 1936
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/error/ErrorPage.tsx",
+      "type": "TSX",
+      "line_count": 26,
+      "size": 609
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/error/index.ts",
+      "type": "TypeScript",
+      "line_count": 1,
+      "size": 29
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/NavButton.spec.tsx",
+      "type": "TSX",
+      "line_count": 43,
+      "size": 1491
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/NavButton.tsx",
+      "type": "TSX",
+      "line_count": 47,
+      "size": 981
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/NavLink.spec.tsx",
+      "type": "TSX",
+      "line_count": 38,
+      "size": 1009
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/NavLink.tsx",
+      "type": "TSX",
+      "line_count": 26,
+      "size": 532
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/Navbar.spec.tsx",
+      "type": "TSX",
+      "line_count": 29,
+      "size": 744
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/Navbar.tsx",
+      "type": "TSX",
+      "line_count": 31,
+      "size": 610
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/__snapshots__/NavButton.spec.tsx.snap",
+      "type": "Jest Snapshot",
+      "line_count": 11,
+      "size": 230
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/__snapshots__/NavLink.spec.tsx.snap",
+      "type": "Jest Snapshot",
+      "line_count": 12,
+      "size": 229
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/__snapshots__/Navbar.spec.tsx.snap",
+      "type": "Jest Snapshot",
+      "line_count": 23,
+      "size": 448
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/navbar/index.ts",
+      "type": "TypeScript",
+      "line_count": 3,
+      "size": 82
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/version-tag.spec.tsx",
+      "type": "TSX",
+      "line_count": 22,
+      "size": 722
+    },
+    {
+      "path": "../openticket/packages/ui/src/lib/version-tag.tsx",
+      "type": "TSX",
+      "line_count": 19,
+      "size": 339
+    },
+    {
+      "path": "../openticket/postcss.config.cjs",
+      "type": "JavaScript",
+      "line_count": 14,
+      "size": 305
+    },
+    {
+      "path": "../openticket/scripts/CreateBuildIdent.js",
+      "type": "JavaScript",
+      "line_count": 13,
+      "size": 337
+    },
+    {
+      "path": "../openticket/scripts/CreateJobMatrix.sh",
+      "type": "Shell",
+      "line_count": 44,
+      "size": 1644
+    },
+    {
+      "path": "../openticket/tools/scripts/eas-build-post-install.mjs",
+      "type": "JavaScript",
+      "line_count": 27,
+      "size": 799
+    }
+  ]
+}

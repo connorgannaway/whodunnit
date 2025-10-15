@@ -15,6 +15,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/connorgannaway/whodunnit/pkg/models"
 	"github.com/go-git/go-git/v5"
 )
 
@@ -39,10 +40,11 @@ type headerModel struct {
 	hash          string
 	width         int
 	activePanel   int
+	gitFilter     *models.GitFilter
 }
 
 // Create a new header model
-func newHeaderModel(path string) headerModel {
+func newHeaderModel(path string, gitFilter *models.GitFilter) headerModel {
 	// evaluate the path
 	cleanPath := filepath.Clean(path)
 	absPath, err := filepath.Abs(cleanPath)
@@ -81,6 +83,7 @@ func newHeaderModel(path string) headerModel {
 		currentBranch: currentBranch,
 		hash:          hash,
 		activePanel:   0,
+		gitFilter:     gitFilter,
 	}
 }
 
@@ -88,7 +91,6 @@ func newHeaderModel(path string) headerModel {
 func (h *headerModel) Update(msg tea.Msg, width int) tea.Cmd {
 	var cmds []tea.Cmd
 
-	// Header doesn't need many updates...
 	switch m := msg.(type) {
 	case tea.WindowSizeMsg:
 		h.width = width // Update model with passed width if the window size message is sent
@@ -106,6 +108,14 @@ func (h headerModel) View() string {
 		gitString = gitStyle.String() + boldText.Render(h.currentBranch) + " "
 		if h.hash != "" {
 			gitString += hashStyle.Render(h.hash) + " "
+		}
+		
+		// Add date filter information if present
+		if h.gitFilter != nil {
+			filterInfo := h.formatDateFilter()
+			if filterInfo != "" {
+				gitString += filterStyle.Render(filterInfo) + " "
+			}
 		}
 	}
 
@@ -142,13 +152,35 @@ func (h headerModel) View() string {
 	}
 	filler := strings.Repeat("─", fillerWidth)
 
-	// String everything together
 	return lipgloss.JoinHorizontal(lipgloss.Center,
 		dirBox,
 		preGitInfo,
 		content,
 		filler,
 	)
+}
+
+// formatDateFilter creates a display string for active date filters
+func (h headerModel) formatDateFilter() string {
+	if h.gitFilter == nil {
+		return ""
+	}
+	
+	var parts []string
+	
+	if h.gitFilter.Since != nil {
+		parts = append(parts, "since:"+h.gitFilter.Since.Format("2006-01-02"))
+	}
+	
+	if h.gitFilter.Until != nil {
+		parts = append(parts, "until:"+h.gitFilter.Until.Format("2006-01-02"))
+	}
+	
+	if len(parts) == 0 {
+		return ""
+	}
+	
+	return "[" + strings.Join(parts, ", ") + "]"
 }
 
 // Styles for the header
@@ -161,6 +193,8 @@ var gitStyle = lipgloss.NewStyle().
 	SetString(" git: ")
 var hashStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("7"))
+var filterStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("6"))
 var boldText = lipgloss.NewStyle().Bold(true)
 var activeDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•")
 var inactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")

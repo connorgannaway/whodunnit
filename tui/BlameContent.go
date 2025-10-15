@@ -15,13 +15,14 @@ import (
 	"github.com/charmbracelet/bubbles/viewport"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
-	"github.com/connorgannaway/whodunnit/count"
+	"github.com/connorgannaway/whodunnit/pkg/models"
+	"github.com/connorgannaway/whodunnit/pkg/services/git"
 	"github.com/go-enry/go-enry/v2"
-	"github.com/go-git/go-git/v5"
+	git_lib "github.com/go-git/go-git/v5"
 )
 
 type blameContentModel struct {
-	counts               *map[string]*count.BlameCount
+	counts               *map[string]*models.AuthorStats
 	sortedCountsKeyArray *[]string
 	isGitRepo            bool
 	sortBy               *SortType
@@ -31,7 +32,7 @@ type blameContentModel struct {
 }
 
 func newBlameContentModel(
-	counts *map[string]*count.BlameCount,
+	counts *map[string]*models.AuthorStats,
 	keys *[]string,
 	sortBy *SortType,
 ) blameContentModel {
@@ -79,7 +80,7 @@ func (c blameContentModel) generateContent() string {
 				Align(lipgloss.Right).
 				Bold(true).
 				Width(COUNT_WIDTH).
-				Render(strconv.Itoa((*c.counts)[k].Count))
+				Render(strconv.Itoa((*c.counts)[k].TotalLines))
 			line := authorStr + totalStr
 			if vpWidth > CONTENT_TOTAL_WIDTH {
 				line = lipgloss.PlaceHorizontal(vpWidth, lipgloss.Center, line)
@@ -143,12 +144,12 @@ func (c *blameContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch m := msg.(type) {
-	case count.BlameDoneMsg:
+	case git.ResultMessage:
 		if c.ready {
 			c.viewport.SetContent(c.generateContent())
 		}
-	case count.BlameErrorMsg:
-		if errors.Is(m.Err, git.ErrRepositoryNotExists) {
+	case git.ErrorMessage:
+		if errors.Is(m.Err, git_lib.ErrRepositoryNotExists) {
 			c.isGitRepo = false
 			c.viewport.SetContent(c.generateContent())
 		}

@@ -17,11 +17,12 @@ import (
 	"github.com/charmbracelet/lipgloss"
 	"github.com/go-enry/go-enry/v2"
 
-	"github.com/connorgannaway/whodunnit/count"
+	"github.com/connorgannaway/whodunnit/pkg/models"
+	"github.com/connorgannaway/whodunnit/pkg/services/files"
 )
 
 type lineContentModel struct {
-	counts                 *map[string]count.FileCount
+	counts                 *map[string]models.FileCount
 	sortedAlphabeticalKeys *[]string
 	sortedCountsKeys       *[]string
 	totalLines             *int
@@ -33,7 +34,7 @@ type lineContentModel struct {
 }
 
 func newLineContentModel(
-	counts *map[string]count.FileCount,
+	counts *map[string]models.FileCount,
 	sortedAlphabeticalKeys *[]string,
 	sortedCountsKeys *[]string,
 	totalLines *int,
@@ -134,7 +135,7 @@ func (c *lineContentModel) Update(msg tea.Msg, width, height int) tea.Cmd {
 	var cmds []tea.Cmd
 
 	switch msg.(type) {
-	case count.WalkDoneMsg:
+	case files.AnalysisResult:
 		if c.ready {
 			c.viewport.SetContent(c.generateContent())
 		}
