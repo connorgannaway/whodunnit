@@ -119,20 +119,24 @@ func (s *Service) walkDirectory(root string, parentIgnore IgnoreFunc, fileFilter
 
 // process a single file
 func (s *Service) processFile(filePath string, fileFilter *filters.FileFilter, result *AnalysisResult) error {
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return err
-	}
-	
-	if fileFilter.IsIgnored(filePath, content) {
-		return nil
-	}
-	
+	// Check if path is a regular file (handles symlinks to directories)
 	stat, err := os.Stat(filePath)
 	if err != nil {
 		return err
 	}
-	
+	if !stat.Mode().IsRegular() {
+		return nil
+	}
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return err
+	}
+
+	if fileFilter.IsIgnored(filePath, content) {
+		return nil
+	}
+
 	lineCount, err := s.countLines(filePath, content)
 	if err != nil {
 		return err

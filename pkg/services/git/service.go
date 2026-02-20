@@ -115,15 +115,19 @@ func (s *Service) blameWorker(jobs <-chan blameJob, wg *sync.WaitGroup, repoPath
 	// Each worker opens its own repository instance to avoid shared state/race conditions
 	repo, err := git.PlainOpen(repoPath)
 	if err != nil {
-		errMsg := ErrorMessage{Err: err}
-		statusChan <- errMsg
+		select {
+		case statusChan <- ErrorMessage{Err: err}:
+		default:
+		}
 		return
 	}
 
 	workerCommit, err := repo.CommitObject(commitHash)
 	if err != nil {
-		errMsg := ErrorMessage{Err: err}
-		statusChan <- errMsg
+		select {
+		case statusChan <- ErrorMessage{Err: err}:
+		default:
+		}
 		return
 	}
 	
@@ -143,9 +147,8 @@ func (s *Service) blameWorker(jobs <-chan blameJob, wg *sync.WaitGroup, repoPath
 
 		blame, err := git.Blame(workerCommit, localizedPath)
 		if err != nil {
-			errMsg := ErrorMessage{Err: err}
-			statusChan <- errMsg
-			return
+			// Skip files that can't be blamed (untracked, not in commit, etc.)
+			continue
 		}
 		
 		// Aggregate per-file stats locally
