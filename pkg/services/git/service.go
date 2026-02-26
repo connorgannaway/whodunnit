@@ -20,8 +20,8 @@ import (
 )
 
 type Service struct {
-	repoPath string
-	repo     *git.Repository
+	gitRoot string // absolute path to the git repo root
+	repo    *git.Repository
 }
 
 // StatusMessage for progress updates
@@ -42,15 +42,15 @@ type ErrorMessage struct {
 	Err error
 }
 
-func NewService(repoPath string) (*Service, error) {
-	repo, err := git.PlainOpen(repoPath)
+func NewService(gitRoot string) (*Service, error) {
+	repo, err := git.PlainOpen(gitRoot)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &Service{
-		repoPath: repoPath,
-		repo:     repo,
+		gitRoot: gitRoot,
+		repo:    repo,
 	}, nil
 }
 
@@ -61,38 +61,38 @@ func (s *Service) BlameFiles(files []models.FileInfo, filter *models.GitFilter, 
 		if err != nil {
 			return ErrorMessage{Err: err}
 		}
-		
+
 		commitHash := headRef.Hash()
-		
+
 		// Setup parallel processing
 		numWorkers := runtime.NumCPU() / 2
 		if numWorkers < 1 {
 			numWorkers = 1
 		}
-		
+
 		jobs := make(chan blameJob, len(files))
 		var wg sync.WaitGroup
-		
+
 		// Shared result storage
 		authorStats := make(map[string]*models.AuthorStats)
 		var statsMutex sync.Mutex
-		
+
 		// Start workers
 		for i := 0; i < numWorkers; i++ {
 			wg.Add(1)
-			go s.blameWorker(jobs, &wg, s.repoPath, commitHash, authorStats, &statsMutex, statusChan, len(files), filter)
+			go s.blameWorker(jobs, &wg, s.gitRoot, commitHash, authorStats, &statsMutex, statusChan, len(files), filter)
 		}
-		
+
 		// Queue jobs
 		for i, file := range files {
 			jobs <- blameJob{file: file, index: i + 1}
 		}
 		close(jobs)
-		
+
 		wg.Wait()
-		
+
 		keys := s.sortAuthorStats(authorStats)
-		
+
 		return ResultMessage{
 			AuthorStats: authorStats,
 			SortedKeys:  keys,
@@ -107,13 +107,13 @@ type blameJob struct {
 }
 
 // processes blame jobs
-func (s *Service) blameWorker(jobs <-chan blameJob, wg *sync.WaitGroup, repoPath string, commitHash plumbing.Hash,
+func (s *Service) blameWorker(jobs <-chan blameJob, wg *sync.WaitGroup, gitRoot string, commitHash plumbing.Hash,
 	authorStats map[string]*models.AuthorStats, statsMutex *sync.Mutex, statusChan chan tea.Msg, totalFiles int, filter *models.GitFilter) {
-	
+
 	defer wg.Done()
 
 	// Each worker opens its own repository instance to avoid shared state/race conditions
-	repo, err := git.PlainOpen(repoPath)
+	repo, err := git.PlainOpen(gitRoot)
 	if err != nil {
 		select {
 		case statusChan <- ErrorMessage{Err: err}:
@@ -130,11 +130,11 @@ func (s *Service) blameWorker(jobs <-chan blameJob, wg *sync.WaitGroup, repoPath
 		}
 		return
 	}
-	
+
 	for job := range jobs {
 		file := job.file
-		localizedPath := strings.TrimPrefix(file.Path, s.repoPath+"/")
-		
+		localizedPath := strings.TrimPrefix(file.Path, s.gitRoot+"/")
+
 		// Send status update to ui (non-blocking)
 		select {
 		case statusChan <- StatusMessage{
@@ -150,7 +150,7 @@ func (s *Service) blameWorker(jobs <-chan blameJob, wg *sync.WaitGroup, repoPath
 			// Skip files that can't be blamed (untracked, not in commit, etc.)
 			continue
 		}
-		
+
 		// Aggregate per-file stats locally
 		localAgg := make(map[string]*models.AuthorStats)
 		for _, line := range blame.Lines {
@@ -222,16 +222,16 @@ func (s *Service) sortAuthorStats(authorStats map[string]*models.AuthorStats) []
 	for author := range authorStats {
 		keys = append(keys, author)
 	}
-	
+
 	// Sort by total line count (descending)
 	sort.Slice(keys, func(i, j int) bool {
 		return authorStats[keys[i]].TotalLines > authorStats[keys[j]].TotalLines
 	})
-	
+
 	// Create sorted keys for each author's file types
 	for _, author := range keys {
 		stats := authorStats[author]
-		
+
 		// Alphabetical keys
 		var filetypeKeys []string
 		for filetype := range stats.LinesByType {
@@ -239,7 +239,7 @@ func (s *Service) sortAuthorStats(authorStats map[string]*models.AuthorStats) []
 		}
 		sort.Strings(filetypeKeys)
 		stats.SortedAlphabeticalKeys = filetypeKeys
-		
+
 		// Count-sorted keys
 		sortedCountsKeys := make([]string, len(filetypeKeys))
 		copy(sortedCountsKeys, filetypeKeys)
@@ -248,16 +248,16 @@ func (s *Service) sortAuthorStats(authorStats map[string]*models.AuthorStats) []
 		})
 		stats.SortedCountsKeys = sortedCountsKeys
 	}
-	
+
 	return keys
 }
 
-// shouldIncludeBlameLine checks if a blame line matches the filter criteria  
+// shouldIncludeBlameLine checks if a blame line matches the filter criteria
 func (s *Service) shouldIncludeBlameLine(line *git.Line, filter *models.GitFilter) bool {
 	if filter == nil {
 		return true
 	}
-	
+
 	// Apply date filtering directly using the line's date
 	if filter.Since != nil && line.Date.Before(*filter.Since) {
 		return false
@@ -265,6 +265,6 @@ func (s *Service) shouldIncludeBlameLine(line *git.Line, filter *models.GitFilte
 	if filter.Until != nil && line.Date.After(*filter.Until) {
 		return false
 	}
-	
+
 	return true
 }

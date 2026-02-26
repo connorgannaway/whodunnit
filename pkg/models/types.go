@@ -37,7 +37,7 @@ type AuthorStats struct {
 	Email       string
 	TotalLines  int
 	LinesByType map[string]FileCount
-	
+
 	// For UI sorting
 	SortedAlphabeticalKeys []string
 	SortedCountsKeys       []string
@@ -66,11 +66,11 @@ type AnalysisResult struct {
 	FileCountsSortedKeys       []string
 	ValidFiles                 []FileInfo
 	TotalLines                 int
-	
+
 	// Git analysis
 	AuthorStats map[string]*AuthorStats
 	AuthorKeys  []string
-	
+
 	// Metadata
 	RepositoryPath string
 	AnalysisDate   time.Time

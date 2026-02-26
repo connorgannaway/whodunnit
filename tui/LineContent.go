@@ -100,7 +100,6 @@ func (c lineContentModel) generateContent() string {
 		} else {
 			keys = *c.sortedAlphabeticalKeys
 		}
-	
 
 		// Iterate over every filetype, rendering the filetype and count
 		for _, k := range keys {

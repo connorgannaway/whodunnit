@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -21,6 +22,7 @@ import (
 	"github.com/connorgannaway/whodunnit/pkg/services/files"
 	"github.com/connorgannaway/whodunnit/pkg/services/git"
 	"github.com/connorgannaway/whodunnit/tui"
+	go_git "github.com/go-git/go-git/v5"
 )
 
 var Version = "dev"
@@ -74,7 +76,7 @@ func main() {
 	sinceFlag := flag.String("since", "", "filter commits after this date (YYYY-MM-DD) - alias for --start")
 	endFlag := flag.String("end", "", "filter commits before this date (YYYY-MM-DD)")
 	untilFlag := flag.String("until", "", "filter commits before this date (YYYY-MM-DD) - alias for --end")
-	
+
 	flag.Parse()
 
 	if *verf {
@@ -97,12 +99,18 @@ func main() {
 		log.Fatalf("%s is not a directory", rootfs)
 	}
 
+	// Resolve absolute target path and discover git root
+	absTarget, absGitRoot, err := discoverGitRoot(rootfs)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Parse and validate date flags
 	gitFilter, err := parseGitFilter(*startFlag, *sinceFlag, *endFlag, *untilFlag)
 	if err != nil {
 		log.Fatalf("date parsing error: %v", err)
 	}
-	
+
 	// Set up the file filter config based on flags
 	fileFilter := &models.FileFilter{
 		IgnoreDotFiles:       !*df,
@@ -122,21 +130,21 @@ func main() {
 		exportFormats++
 		selectedFormat = models.ExportFormatXML
 	}
-	
+
 	if exportFormats > 1 {
 		log.Fatal("only one export format can be specified (--json or --xml)")
 	}
 
 	// Run without TUI if any export flag is set
 	if exportFormats > 0 {
-		err := exportData(rootfs, fileFilter, gitFilter, selectedFormat)
+		err := exportData(absTarget, absGitRoot, fileFilter, gitFilter, selectedFormat)
 		if err != nil {
 			log.Fatalf("export failed: %v", err)
 		}
 		return
 	}
 
-	rootModel := tui.NewRootModel(rootfs, fileFilter, gitFilter)
+	rootModel := tui.NewRootModel(absTarget, absGitRoot, fileFilter, gitFilter)
 
 	// Create TUI
 	program := tea.NewProgram(
@@ -156,7 +164,7 @@ func main() {
 // parse and validates date filter flags
 func parseGitFilter(startFlag, sinceFlag, endFlag, untilFlag string) (*models.GitFilter, error) {
 	gitFilter := &models.GitFilter{}
-	
+
 	// Parse start date (--start or --since)
 	startDate := startFlag
 	if startDate == "" {
@@ -164,7 +172,7 @@ func parseGitFilter(startFlag, sinceFlag, endFlag, untilFlag string) (*models.Gi
 	} else if sinceFlag != "" {
 		return nil, fmt.Errorf("cannot specify both --start and --since flags")
 	}
-	
+
 	if startDate != "" {
 		parsed, err := parseDate(startDate)
 		if err != nil {
@@ -172,7 +180,7 @@ func parseGitFilter(startFlag, sinceFlag, endFlag, untilFlag string) (*models.Gi
 		}
 		gitFilter.Since = &parsed
 	}
-	
+
 	// Parse end date (--end or --until)
 	endDate := endFlag
 	if endDate == "" {
@@ -180,7 +188,7 @@ func parseGitFilter(startFlag, sinceFlag, endFlag, untilFlag string) (*models.Gi
 	} else if untilFlag != "" {
 		return nil, fmt.Errorf("cannot specify both --end and --until flags")
 	}
-	
+
 	if endDate != "" {
 		parsed, err := parseDate(endDate)
 		if err != nil {
@@ -188,12 +196,12 @@ func parseGitFilter(startFlag, sinceFlag, endFlag, untilFlag string) (*models.Gi
 		}
 		gitFilter.Until = &parsed
 	}
-	
+
 	// Validate date range
 	if gitFilter.Since != nil && gitFilter.Until != nil && gitFilter.Since.After(*gitFilter.Until) {
 		return nil, fmt.Errorf("start date cannot be after end date")
 	}
-	
+
 	return gitFilter, nil
 }
 
@@ -201,31 +209,31 @@ func parseGitFilter(startFlag, sinceFlag, endFlag, untilFlag string) (*models.Gi
 func parseDate(dateStr string) (time.Time, error) {
 	// Try common date formats
 	formats := []string{
-		"2006-01-02",           // YYYY-MM-DD
-		"2006-01-02T15:04:05",  // YYYY-MM-DDTHH:MM:SS
-		"2006-01-02 15:04:05",  // YYYY-MM-DD HH:MM:SS
-		"01/02/2006",           // MM/DD/YYYY
-		"2006/01/02",           // YYYY/MM/DD
-		"02 Jan 2006",          // DD Mon YYYY
+		"2006-01-02",          // YYYY-MM-DD
+		"2006-01-02T15:04:05", // YYYY-MM-DDTHH:MM:SS
+		"2006-01-02 15:04:05", // YYYY-MM-DD HH:MM:SS
+		"01/02/2006",          // MM/DD/YYYY
+		"2006/01/02",          // YYYY/MM/DD
+		"02 Jan 2006",         // DD Mon YYYY
 	}
-	
+
 	for _, format := range formats {
 		if parsed, err := time.Parse(format, dateStr); err == nil {
 			return parsed, nil
 		}
 	}
-	
+
 	return time.Time{}, fmt.Errorf("unsupported date format, try YYYY-MM-DD")
 }
 
 // exportData handles data export in the specified format without starting the TUI
-func exportData(rootPath string, fileFilter *models.FileFilter, gitFilter *models.GitFilter, format models.ExportFormat) error {
-	fileService := files.NewService(rootPath)
-	
+func exportData(absTarget, absGitRoot string, fileFilter *models.FileFilter, gitFilter *models.GitFilter, format models.ExportFormat) error {
+	fileService := files.NewService(absTarget, absGitRoot)
+
 	// Perform file analysis
 	cmd := fileService.AnalyzeDirectory(fileFilter)
 	result := cmd()
-	
+
 	switch r := result.(type) {
 	case files.AnalysisResult:
 		// Create analysis result
@@ -235,25 +243,25 @@ func exportData(rootPath string, fileFilter *models.FileFilter, gitFilter *model
 			FileCountsSortedKeys:       r.FileCountsSortedKeys,
 			ValidFiles:                 r.ValidFiles,
 			TotalLines:                 r.TotalLines,
-			RepositoryPath:             rootPath,
+			RepositoryPath:             absTarget,
 			FileFilterUsed:             fileFilter,
 			GitFilterUsed:              gitFilter,
 			AnalysisDate:               time.Now(),
 			AuthorStats:                make(map[string]*models.AuthorStats),
 		}
-		
+
 		// Add git blame analysis if we have a git repository and valid files
-		if len(r.ValidFiles) > 0 {
-			gitService, err := git.NewService(rootPath)
+		if len(r.ValidFiles) > 0 && absGitRoot != "" {
+			gitService, err := git.NewService(absGitRoot)
 			if err == nil {
 				// Create a channel for status updates (not used in JSON mode)
 				statusChan := make(chan tea.Msg, 100)
-				
+
 				cmd := gitService.BlameFiles(r.ValidFiles, gitFilter, statusChan)
 				gitResult := cmd()
-				
+
 				close(statusChan)
-				
+
 				switch gr := gitResult.(type) {
 				case git.ResultMessage:
 					analysisResult.AuthorStats = gr.AuthorStats
@@ -264,7 +272,7 @@ func exportData(rootPath string, fileFilter *models.FileFilter, gitFilter *model
 				}
 			}
 		}
-		
+
 		// Export in the specified format
 		exportService := export.NewService(analysisResult)
 		return exportService.ExportData(format, os.Stdout)
@@ -273,4 +281,28 @@ func exportData(rootPath string, fileFilter *models.FileFilter, gitFilter *model
 	default:
 		return fmt.Errorf("unexpected result type")
 	}
+}
+
+// resolves the absolute target path and finds the git repository root if it exists, otherwise emptystring
+func discoverGitRoot(targetPath string) (absTarget, absGitRoot string, err error) {
+	absTarget, err = filepath.Abs(targetPath)
+	if err != nil {
+		return "", "", err
+	}
+
+	repo, err := go_git.PlainOpenWithOptions(absTarget, &go_git.PlainOpenOptions{
+		DetectDotGit: true,
+	})
+	if err != nil {
+		// No git repo found
+		return absTarget, "", nil
+	}
+
+	wt, err := repo.Worktree()
+	if err != nil {
+		return absTarget, "", nil
+	}
+
+	absGitRoot = wt.Filesystem.Root()
+	return absTarget, absGitRoot, nil
 }

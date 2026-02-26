@@ -17,7 +17,7 @@ import (
 	"github.com/connorgannaway/whodunnit/pkg/models"
 )
 
-type Service struct{
+type Service struct {
 	result *models.AnalysisResult
 }
 
@@ -47,17 +47,16 @@ func (s *Service) exportJSON(writer io.Writer) error {
 	return encoder.Encode(s.createExportData())
 }
 
-
 // exports data as XML
 func (s *Service) exportXML(writer io.Writer) error {
 	data := s.createExportData()
 	encoder := xml.NewEncoder(writer)
 	encoder.Indent("", "  ")
-	
+
 	if _, err := writer.Write([]byte(xml.Header)); err != nil {
 		return err
 	}
-	
+
 	return encoder.Encode(data)
 }
 
@@ -68,7 +67,7 @@ func (s *Service) createExportData() ExportData {
 	for _, stats := range s.result.AuthorStats {
 		filteredLines += stats.TotalLines
 	}
-	
+
 	data := ExportData{
 		Metadata: ExportMetadata{
 			RepositoryPath: s.result.RepositoryPath,
@@ -82,7 +81,7 @@ func (s *Service) createExportData() ExportData {
 		Authors:   make([]AuthorExport, 0, len(s.result.AuthorStats)),
 		Files:     make([]FileExport, 0, len(s.result.ValidFiles)),
 	}
-	
+
 	// Add file type data
 	for _, filetype := range s.result.FileCountsSortedKeys {
 		count := s.result.FileCounts[filetype]
@@ -94,7 +93,7 @@ func (s *Service) createExportData() ExportData {
 			Percentage: percentage,
 		})
 	}
-	
+
 	// Add author data
 	for _, author := range s.result.AuthorKeys {
 		stats := s.result.AuthorStats[author]
@@ -104,7 +103,7 @@ func (s *Service) createExportData() ExportData {
 			TotalLines: stats.TotalLines,
 			FileTypes:  make([]FileTypeContribution, 0, len(stats.LinesByType)),
 		}
-		
+
 		for _, filetype := range stats.SortedCountsKeys {
 			fc := stats.LinesByType[filetype]
 			authorData.FileTypes = append(authorData.FileTypes, FileTypeContribution{
@@ -112,10 +111,10 @@ func (s *Service) createExportData() ExportData {
 				Lines: fc.Count,
 			})
 		}
-		
+
 		data.Authors = append(data.Authors, authorData)
 	}
-	
+
 	// Add file data
 	for _, file := range s.result.ValidFiles {
 		data.Files = append(data.Files, FileExport{
@@ -125,7 +124,7 @@ func (s *Service) createExportData() ExportData {
 			Size:      file.Size,
 		})
 	}
-	
+
 	return data
 }
 
@@ -137,29 +136,29 @@ func (s *Service) createFilterMetadata() *FilterMetadata {
 
 	gitFilter := s.result.GitFilterUsed
 	var dateRange *DateRangeFilter
-	
+
 	// Add date range information if present
 	if gitFilter.Since != nil || gitFilter.Until != nil {
 		dateRange = &DateRangeFilter{}
-		
+
 		if gitFilter.Since != nil {
 			since := gitFilter.Since.Format("2006-01-02")
 			dateRange.Since = &since
 		}
-		
+
 		if gitFilter.Until != nil {
 			until := gitFilter.Until.Format("2006-01-02")
 			dateRange.Until = &until
 		}
 	}
-	
+
 	// Only return filter metadata if we have actual filters
 	if dateRange != nil {
 		return &FilterMetadata{
 			DateRange: dateRange,
 		}
 	}
-	
+
 	return nil
 }
 
@@ -174,12 +173,12 @@ type ExportData struct {
 
 // ExportMetadata contains analysis metadata
 type ExportMetadata struct {
-	RepositoryPath string                 `json:"repository_path" xml:"repository_path"`
-	AnalysisDate   string                 `json:"analysis_date" xml:"analysis_date"`
-	TotalLines     int                    `json:"total_lines" xml:"total_lines"`
-	TotalFiles     int                    `json:"total_files" xml:"total_files"`
-	FilteredLines  int                    `json:"filtered_lines,omitempty" xml:"filtered_lines,omitempty"`
-	Filters        *FilterMetadata        `json:"filters,omitempty" xml:"filters,omitempty"`
+	RepositoryPath string          `json:"repository_path" xml:"repository_path"`
+	AnalysisDate   string          `json:"analysis_date" xml:"analysis_date"`
+	TotalLines     int             `json:"total_lines" xml:"total_lines"`
+	TotalFiles     int             `json:"total_files" xml:"total_files"`
+	FilteredLines  int             `json:"filtered_lines,omitempty" xml:"filtered_lines,omitempty"`
+	Filters        *FilterMetadata `json:"filters,omitempty" xml:"filters,omitempty"`
 }
 
 // FilterMetadata contains information about applied filters

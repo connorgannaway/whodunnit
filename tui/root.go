@@ -55,7 +55,7 @@ type rootModel struct {
 	statusChannel chan tea.Msg
 }
 
-func NewRootModel(rootfs string, fileFilter *models.FileFilter, gitFilter *models.GitFilter) *rootModel {
+func NewRootModel(absTarget string, absGitRoot string, fileFilter *models.FileFilter, gitFilter *models.GitFilter) *rootModel {
 	// Set default file filter if none provided
 	if fileFilter == nil {
 		fileFilter = &models.FileFilter{
@@ -69,10 +69,12 @@ func NewRootModel(rootfs string, fileFilter *models.FileFilter, gitFilter *model
 	r := &rootModel{}
 
 	// Initialize services
-	r.fileService = files.NewService(rootfs)
-	gitService, err := git.NewService(rootfs)
-	if err == nil {
-		r.gitService = gitService
+	r.fileService = files.NewService(absTarget, absGitRoot)
+	if absGitRoot != "" {
+		gitService, err := git.NewService(absGitRoot)
+		if err == nil {
+			r.gitService = gitService
+		}
 	}
 
 	// Configuration + state
@@ -85,14 +87,14 @@ func NewRootModel(rootfs string, fileFilter *models.FileFilter, gitFilter *model
 
 	// Initialize empty analysis result
 	r.analysisResult = &models.AnalysisResult{
-		FileCounts:   make(map[string]models.FileCount),
-		AuthorStats:  make(map[string]*models.AuthorStats),
-		ValidFiles:   []models.FileInfo{},
-		RepositoryPath: rootfs,
+		FileCounts:     make(map[string]models.FileCount),
+		AuthorStats:    make(map[string]*models.AuthorStats),
+		ValidFiles:     []models.FileInfo{},
+		RepositoryPath: absTarget,
 	}
 
 	// Initialize submodels
-	r.header = newHeaderModel(rootfs, gitFilter)
+	r.header = newHeaderModel(absTarget, absGitRoot, gitFilter)
 	r.footer = newFooterModel()
 	r.lineContent = newLineContentModel(
 		&r.analysisResult.FileCounts,

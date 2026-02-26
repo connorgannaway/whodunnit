@@ -29,13 +29,13 @@ func NewFileFilter(filters ...FilterFunc) *FileFilter {
 			},
 		},
 	}
-	
+
 	for _, filter := range filters {
 		if filter != nil {
 			ff.filters = append(ff.filters, filter)
 		}
 	}
-	
+
 	return ff
 }
 

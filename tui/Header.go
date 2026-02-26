@@ -35,6 +35,7 @@ func SetActivePanel(panel int) tea.Cmd {
 type headerModel struct {
 	path          string
 	directoryName string
+	subPath       string
 	isGitRepo     bool
 	currentBranch string
 	hash          string
@@ -44,41 +45,55 @@ type headerModel struct {
 }
 
 // Create a new header model
-func newHeaderModel(path string, gitFilter *models.GitFilter) headerModel {
-	// evaluate the path
-	cleanPath := filepath.Clean(path)
-	absPath, err := filepath.Abs(cleanPath)
+func newHeaderModel(absTarget string, absGitRoot string, gitFilter *models.GitFilter) headerModel {
+	absPath, err := filepath.Abs(absTarget)
 	if err != nil {
-		absPath = cleanPath
+		absPath = absTarget
 	}
 
-	// Get the directory name
-	d := filepath.Base(absPath)
-	if d == "." || d == "" {
+	// Determine directory name for the box and sub-path
+	var dirName string
+	var subPath string
+
+	if absGitRoot != "" {
+		// Use the git repo root name for the box
+		dirName = filepath.Base(absGitRoot)
+		if rel, err := filepath.Rel(absGitRoot, absPath); err == nil && rel != "." {
+			subPath = rel
+		}
+	} else {
+		// use the target directory name
+		dirName = filepath.Base(absPath)
+	}
+
+	if dirName == "." || dirName == "" {
 		if wd, err := os.Getwd(); err == nil {
-			d = filepath.Base(wd)
+			dirName = filepath.Base(wd)
 		} else {
-			d = "."
+			dirName = "."
 		}
 	}
 
 	// Get the branch name and current commit hash
-	var isGitRepo bool = false
-	var currentBranch string = ""
-	var hash string = ""
-	repo, err := git.PlainOpen(path)
-	if err == nil {
-		headRef, err := repo.Head()
+	var isGitRepo bool
+	var currentBranch string
+	var hash string
+	if absGitRoot != "" {
+		repo, err := git.PlainOpen(absGitRoot)
 		if err == nil {
-			currentBranch = headRef.Name().Short()
-			hash = headRef.Hash().String()[0:7]
-			isGitRepo = true
+			headRef, err := repo.Head()
+			if err == nil {
+				currentBranch = headRef.Name().Short()
+				hash = headRef.Hash().String()[0:7]
+				isGitRepo = true
+			}
 		}
 	}
 
 	return headerModel{
 		path:          absPath,
-		directoryName: d,
+		directoryName: dirName,
+		subPath:       subPath,
 		isGitRepo:     isGitRepo,
 		currentBranch: currentBranch,
 		hash:          hash,
@@ -109,7 +124,7 @@ func (h headerModel) View() string {
 		if h.hash != "" {
 			gitString += hashStyle.Render(h.hash) + " "
 		}
-		
+
 		// Add date filter information if present
 		if h.gitFilter != nil {
 			filterInfo := h.formatDateFilter()
@@ -117,6 +132,12 @@ func (h headerModel) View() string {
 				gitString += filterStyle.Render(filterInfo) + " "
 			}
 		}
+	}
+
+	// Create sub-path string if targeting a subdirectory
+	subPathString := ""
+	if h.subPath != "" {
+		subPathString = subPathStyle.Render(" /" + h.subPath + " ")
 	}
 
 	// Create directory name with box
@@ -131,6 +152,7 @@ func (h headerModel) View() string {
 
 	// Calculate the width of the components
 	dirBoxWidth := lipgloss.Width(dirBox)
+	subPathWidth := lipgloss.Width(subPathString)
 	preGitInfoWidth := lipgloss.Width(preGitInfo)
 	gitStringWidth := lipgloss.Width(gitString)
 	dotStringWidth := lipgloss.Width(dotString)
@@ -139,10 +161,10 @@ func (h headerModel) View() string {
 	var content string
 	var fillerWidth int
 	if h.width <= SINGLE_PANEL_WIDTH {
-		fillerWidth = h.width - dirBoxWidth - preGitInfoWidth - dotStringWidth
+		fillerWidth = h.width - dirBoxWidth - subPathWidth - preGitInfoWidth - dotStringWidth
 		content = dotString
 	} else {
-		fillerWidth = h.width - dirBoxWidth - preGitInfoWidth - gitStringWidth
+		fillerWidth = h.width - dirBoxWidth - subPathWidth - preGitInfoWidth - gitStringWidth
 		content = gitString
 	}
 
@@ -154,6 +176,7 @@ func (h headerModel) View() string {
 
 	return lipgloss.JoinHorizontal(lipgloss.Center,
 		dirBox,
+		subPathString,
 		preGitInfo,
 		content,
 		filler,
@@ -165,21 +188,21 @@ func (h headerModel) formatDateFilter() string {
 	if h.gitFilter == nil {
 		return ""
 	}
-	
+
 	var parts []string
-	
+
 	if h.gitFilter.Since != nil {
 		parts = append(parts, "since:"+h.gitFilter.Since.Format("2006-01-02"))
 	}
-	
+
 	if h.gitFilter.Until != nil {
 		parts = append(parts, "until:"+h.gitFilter.Until.Format("2006-01-02"))
 	}
-	
+
 	if len(parts) == 0 {
 		return ""
 	}
-	
+
 	return "[" + strings.Join(parts, ", ") + "]"
 }
 
@@ -191,6 +214,8 @@ var directoryStyle = lipgloss.NewStyle().
 var gitStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("7")).
 	SetString(" git: ")
+var subPathStyle = lipgloss.NewStyle().
+	Foreground(lipgloss.Color("7"))
 var hashStyle = lipgloss.NewStyle().
 	Foreground(lipgloss.Color("7"))
 var filterStyle = lipgloss.NewStyle().
